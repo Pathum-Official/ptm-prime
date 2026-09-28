@@ -213,7 +213,7 @@ export default function Dashboard() {
   const handleSaveLogic = async () => {
     try {
       const res = await fetch(`${API_URL}/api/v1/users/settings/logic`, {
-        method: "POST", headers: { "Content-Type": "application/json" }, credentials: "include",
+        method: "POST", headers: { "ngrok-skip-browser-warning": "true", "Content-Type": "application/json" }, credentials: "include",
         body: JSON.stringify({ active_strategy: strategy, stake_amount: initialStake, take_profit: targetProfit, stop_loss: stopLoss, martingale_multiplier: multiplier, cooldown_period: cooldownPeriod, win_cooldown: winCooldown, loss_cooldown: lossCooldown })
       });
       if (res.ok) { showToast("Logic configuration saved successfully!", "success"); playTTS("Money management logic securely locked and saved."); }
@@ -224,7 +224,7 @@ export default function Dashboard() {
   const handleUpdateDeriv = async () => {
     try {
       const res = await fetch(`${API_URL}/api/v1/users/settings/deriv`, {
-        method: "POST", headers: { "Content-Type": "application/json" }, credentials: "include",
+        method: "POST", headers: { "ngrok-skip-browser-warning": "true", "Content-Type": "application/json" }, credentials: "include",
         body: JSON.stringify({ token: derivToken })
       });
       if (res.ok) { showToast("Deriv token securely updated!", "success"); setDerivToken(""); playTTS("API credentials updated and encrypted."); }
@@ -235,7 +235,7 @@ export default function Dashboard() {
   const handleRequestTelegramOtp = async () => {
     try {
       const res = await fetch(`${API_URL}/api/v1/users/settings/telegram/request-otp`, {
-        method: "POST", headers: { "Content-Type": "application/json" }, credentials: "include",
+        method: "POST", headers: { "ngrok-skip-browser-warning": "true", "Content-Type": "application/json" }, credentials: "include",
         body: JSON.stringify({ telegram_id: telegramId })
       });
       const data = await res.json();
@@ -247,7 +247,7 @@ export default function Dashboard() {
   const handleVerifyTelegram = async () => {
     try {
       const res = await fetch(`${API_URL}/api/v1/users/settings/telegram/verify-otp`, {
-        method: "POST", headers: { "Content-Type": "application/json" }, credentials: "include",
+        method: "POST", headers: { "ngrok-skip-browser-warning": "true", "Content-Type": "application/json" }, credentials: "include",
         body: JSON.stringify({ telegram_id: telegramId, otp: telegramOtp })
       });
       const data = await res.json();
@@ -374,7 +374,7 @@ export default function Dashboard() {
     try {
       const endpoint = isRunning ? "/api/v1/bot/stop" : "/api/v1/bot/start";
       const res = await fetch(`${API_URL}${endpoint}`, {
-        method: "POST", headers: { "Content-Type": "application/json" }, credentials: "include",
+        method: "POST", headers: { "ngrok-skip-browser-warning": "true", "Content-Type": "application/json" }, credentials: "include",
         body: isRunning ? "{}" : JSON.stringify({ 
           initial_stake: initialStake, 
           target_profit: targetProfit, 
@@ -409,7 +409,7 @@ export default function Dashboard() {
     }
     try {
       const res = await fetch(`${API_URL}/api/v1/users/change-password`, {
-        method: "POST", headers: { "Content-Type": "application/json" }, credentials: "include",
+        method: "POST", headers: { "ngrok-skip-browser-warning": "true", "Content-Type": "application/json" }, credentials: "include",
         body: JSON.stringify({ email: "info.ptmprime@gmail.com", current_password: curPwd, new_password: newPwd, confirm_password: confPwd })
       });
       if (res.ok) { showToast("Password changed securely!", "success"); setCurPwd(""); setNewPwd(""); setConfPwd(""); playTTS("Master password changed securely."); }

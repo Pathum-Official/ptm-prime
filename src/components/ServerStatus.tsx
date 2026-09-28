@@ -12,7 +12,7 @@ export function ServerStatus() {
   const checkStatus = async () => {
     setIsChecking(true);
     try {
-      const res = await fetch(`${API_URL}/api/v1/health`, { cache: 'no-store' });
+      const res = await fetch(`${API_URL}/api/v1/health`, { cache: 'no-store', headers: { "ngrok-skip-browser-warning": "true" } });
       if (res.ok) setIsOffline(false);
       else setIsOffline(true);
     } catch (e) {

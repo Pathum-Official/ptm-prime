@@ -113,7 +113,7 @@ export default function AdminDashboard() {
     if (!replyText.trim() || !selectedTicket) return;
     try {
       const res = await fetch(`${API_URL}/api/v1/support/admin/tickets/${selectedTicket.id}/reply`, {
-        method: "POST", headers: { "Content-Type": "application/json" }, credentials: "include",
+        method: "POST", headers: { "ngrok-skip-browser-warning": "true", "Content-Type": "application/json" }, credentials: "include",
         body: JSON.stringify({ content: replyText })
       });
       if (res.ok) {
@@ -128,7 +128,7 @@ export default function AdminDashboard() {
     setIsLoading(true);
     try {
       const res = await fetch(`${API_URL}/api/v1/admin/users/create`, {
-        method: "POST", headers: { "Content-Type": "application/json" },
+        method: "POST", headers: { "ngrok-skip-browser-warning": "true", "Content-Type": "application/json" },
         body: JSON.stringify({ full_name: fullName, email, temporary_password: tempPassword, package_type: packageType, subscription_duration_days: duration, telegram_id: telegramId, whatsapp_number: whatsapp }),
         credentials: "include"
       });
@@ -150,7 +150,7 @@ export default function AdminDashboard() {
     setIsLoading(true);
     try {
       const res = await fetch(`${API_URL}/api/v1/admin/users/${selectedUser.id}`, {
-        method: "PUT", headers: { "Content-Type": "application/json" },
+        method: "PUT", headers: { "ngrok-skip-browser-warning": "true", "Content-Type": "application/json" },
         body: JSON.stringify({ full_name: fullName, email, password: tempPassword || null, telegram_id: telegramId, whatsapp_number: whatsapp }),
         credentials: "include"
       });
@@ -225,7 +225,7 @@ export default function AdminDashboard() {
     if (!broadcastMessage) return showToast("Message cannot be empty", "error");
     try {
       const res = await fetch(`${API_URL}/api/v1/admin/system/broadcast`, {
-        method: "POST", headers: { "Content-Type": "application/json" },
+        method: "POST", headers: { "ngrok-skip-browser-warning": "true", "Content-Type": "application/json" },
         body: JSON.stringify({ target: broadcastTarget, message: broadcastMessage }),
         credentials: "include"
       });

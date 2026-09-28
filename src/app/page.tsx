@@ -27,7 +27,7 @@ export default function Home() {
     try {
       const res = await fetch(`${API_URL}/api/v1/auth/login`, {
         method: "POST", 
-        headers: { "Content-Type": "application/json" },
+        headers: { "ngrok-skip-browser-warning": "true", "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
         credentials: "include"
       });
@@ -49,7 +49,7 @@ export default function Home() {
     setIsLoading(true); setError(""); setMessage("");
     try {
       const res = await fetch(`${API_URL}/api/v1/auth/forgot-password`, {
-        method: "POST", headers: { "Content-Type": "application/json" },
+        method: "POST", headers: { "ngrok-skip-browser-warning": "true", "Content-Type": "application/json" },
         body: JSON.stringify({ email })
       });
       if (res.ok) {
@@ -65,7 +65,7 @@ export default function Home() {
     setIsLoading(true); setError(""); setMessage("");
     try {
       const res = await fetch(`${API_URL}/api/v1/auth/reset-password`, {
-        method: "POST", headers: { "Content-Type": "application/json" },
+        method: "POST", headers: { "ngrok-skip-browser-warning": "true", "Content-Type": "application/json" },
         body: JSON.stringify({ email, otp, new_password: newPassword })
       });
       if (res.ok) {
