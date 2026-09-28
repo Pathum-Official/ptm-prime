@@ -7,7 +7,7 @@ import { Users, ShieldAlert, Zap, Plus, LogOut, Activity, CheckCircle2, AlertTri
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
-import { Logo } from "../page";
+import { Logo } from "@/components/Logo";
 
 export default function AdminDashboard() {
   const router = useRouter();

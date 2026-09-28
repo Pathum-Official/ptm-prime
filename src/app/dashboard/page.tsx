@@ -6,7 +6,7 @@ import { useState, useEffect } from "react";
 import { Activity, ShieldAlert, Target, TrendingUp, Wallet, Power, Settings, LogOut, ChevronDown, ChevronUp, CheckCircle2, History, Banknote } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useRouter } from "next/navigation";
-import { Logo } from "../page";
+import { Logo } from "@/components/Logo";
 
 export default function Dashboard() {
   const router = useRouter();
