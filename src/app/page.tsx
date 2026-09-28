@@ -33,7 +33,8 @@ export default function Home() {
       });
       const data = await res.json();
       if (res.ok) {
-        localStorage.setItem("user", JSON.stringify(data.user));\n        if (data.token) localStorage.setItem("token", data.token);
+        localStorage.setItem("user", JSON.stringify(data.user));
+        if (data.token) localStorage.setItem("token", data.token);
         if (data.user && data.user.is_admin !== undefined) {
           window.location.href = data.user.is_admin ? "/admin" : "/dashboard";
         } else {
