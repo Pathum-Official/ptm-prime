@@ -122,7 +122,7 @@ export default function Dashboard() {
 
   const fetchHistory = async () => {
     try {
-      const res = await fetch(`${API_URL}/api/v1/bot/history`, {credentials: "include", headers: {"ngrok-skip-browser-warning": "true"}});
+      const res = await fetch(`${API_URL}/api/v1/bot/history`, {credentials: "include", headers: {"ngrok-skip-browser-warning": "true", "Authorization": `Bearer ${localStorage.getItem("token")}`}});
       if (res.ok) setTradeHistory(await res.json());
     } catch(e) {}
   };
@@ -152,7 +152,7 @@ export default function Dashboard() {
   useEffect(() => {
     const loadSettings = async () => {
       try {
-        const res = await fetch(`${API_URL}/api/v1/users/me`, {credentials: "include", headers: {"ngrok-skip-browser-warning": "true"}});
+        const res = await fetch(`${API_URL}/api/v1/users/me`, {credentials: "include", headers: {"ngrok-skip-browser-warning": "true", "Authorization": `Bearer ${localStorage.getItem("token")}`}});
         if (!res.ok) {
           router.push("/");
           return;
@@ -186,21 +186,21 @@ export default function Dashboard() {
           }
         
         // Fetch current bot running status
-        const statusRes = await fetch(`${API_URL}/api/v1/bot/status`, {credentials: "include", headers: {"ngrok-skip-browser-warning": "true"}});
+        const statusRes = await fetch(`${API_URL}/api/v1/bot/status`, {credentials: "include", headers: {"ngrok-skip-browser-warning": "true", "Authorization": `Bearer ${localStorage.getItem("token")}`}});
         if (statusRes.ok) {
           const statusData = await statusRes.json();
           setIsRunning(statusData.running);
         }
         
         // Fetch account balance independently
-        const balanceRes = await fetch(`${API_URL}/api/v1/bot/balance`, {credentials: "include", headers: {"ngrok-skip-browser-warning": "true"}});
+        const balanceRes = await fetch(`${API_URL}/api/v1/bot/balance`, {credentials: "include", headers: {"ngrok-skip-browser-warning": "true", "Authorization": `Bearer ${localStorage.getItem("token")}`}});
         if (balanceRes.ok) {
           const balData = await balanceRes.json();
           if (balData.balance !== null) setAccountBalance(balData.balance);
         }
         
         // Fetch trade history
-        const historyRes = await fetch(`${API_URL}/api/v1/bot/history`, {credentials: "include", headers: {"ngrok-skip-browser-warning": "true"}});
+        const historyRes = await fetch(`${API_URL}/api/v1/bot/history`, {credentials: "include", headers: {"ngrok-skip-browser-warning": "true", "Authorization": `Bearer ${localStorage.getItem("token")}`}});
         if (historyRes.ok) {
           const histData = await historyRes.json();
           setTradeHistory(histData);
@@ -213,7 +213,7 @@ export default function Dashboard() {
   const handleSaveLogic = async () => {
     try {
       const res = await fetch(`${API_URL}/api/v1/users/settings/logic`, {
-        method: "POST", headers: { "ngrok-skip-browser-warning": "true", "Content-Type": "application/json" }, credentials: "include",
+        method: "POST", headers: { "ngrok-skip-browser-warning": "true", "Authorization": `Bearer ${localStorage.getItem("token")}`, "Content-Type": "application/json" }, credentials: "include",
         body: JSON.stringify({ active_strategy: strategy, stake_amount: initialStake, take_profit: targetProfit, stop_loss: stopLoss, martingale_multiplier: multiplier, cooldown_period: cooldownPeriod, win_cooldown: winCooldown, loss_cooldown: lossCooldown })
       });
       if (res.ok) { showToast("Logic configuration saved successfully!", "success"); playTTS("Money management logic securely locked and saved."); }
@@ -224,7 +224,7 @@ export default function Dashboard() {
   const handleUpdateDeriv = async () => {
     try {
       const res = await fetch(`${API_URL}/api/v1/users/settings/deriv`, {
-        method: "POST", headers: { "ngrok-skip-browser-warning": "true", "Content-Type": "application/json" }, credentials: "include",
+        method: "POST", headers: { "ngrok-skip-browser-warning": "true", "Authorization": `Bearer ${localStorage.getItem("token")}`, "Content-Type": "application/json" }, credentials: "include",
         body: JSON.stringify({ token: derivToken })
       });
       if (res.ok) { showToast("Deriv token securely updated!", "success"); setDerivToken(""); playTTS("API credentials updated and encrypted."); }
@@ -235,7 +235,7 @@ export default function Dashboard() {
   const handleRequestTelegramOtp = async () => {
     try {
       const res = await fetch(`${API_URL}/api/v1/users/settings/telegram/request-otp`, {
-        method: "POST", headers: { "ngrok-skip-browser-warning": "true", "Content-Type": "application/json" }, credentials: "include",
+        method: "POST", headers: { "ngrok-skip-browser-warning": "true", "Authorization": `Bearer ${localStorage.getItem("token")}`, "Content-Type": "application/json" }, credentials: "include",
         body: JSON.stringify({ telegram_id: telegramId })
       });
       const data = await res.json();
@@ -247,7 +247,7 @@ export default function Dashboard() {
   const handleVerifyTelegram = async () => {
     try {
       const res = await fetch(`${API_URL}/api/v1/users/settings/telegram/verify-otp`, {
-        method: "POST", headers: { "ngrok-skip-browser-warning": "true", "Content-Type": "application/json" }, credentials: "include",
+        method: "POST", headers: { "ngrok-skip-browser-warning": "true", "Authorization": `Bearer ${localStorage.getItem("token")}`, "Content-Type": "application/json" }, credentials: "include",
         body: JSON.stringify({ telegram_id: telegramId, otp: telegramOtp })
       });
       const data = await res.json();
@@ -279,7 +279,7 @@ export default function Dashboard() {
         else triggerFlash('loss');
         
         // Refresh history
-        fetch(`${API_URL}/api/v1/bot/history`, {credentials: "include", headers: {"ngrok-skip-browser-warning": "true"}})
+        fetch(`${API_URL}/api/v1/bot/history`, {credentials: "include", headers: {"ngrok-skip-browser-warning": "true", "Authorization": `Bearer ${localStorage.getItem("token")}`}})
           .then(res => res.ok ? res.json() : [])
           .then(hist => setTradeHistory(hist))
           .catch(() => {});
@@ -374,7 +374,7 @@ export default function Dashboard() {
     try {
       const endpoint = isRunning ? "/api/v1/bot/stop" : "/api/v1/bot/start";
       const res = await fetch(`${API_URL}${endpoint}`, {
-        method: "POST", headers: { "ngrok-skip-browser-warning": "true", "Content-Type": "application/json" }, credentials: "include",
+        method: "POST", headers: { "ngrok-skip-browser-warning": "true", "Authorization": `Bearer ${localStorage.getItem("token")}`, "Content-Type": "application/json" }, credentials: "include",
         body: isRunning ? "{}" : JSON.stringify({ 
           initial_stake: initialStake, 
           target_profit: targetProfit, 
@@ -409,7 +409,7 @@ export default function Dashboard() {
     }
     try {
       const res = await fetch(`${API_URL}/api/v1/users/change-password`, {
-        method: "POST", headers: { "ngrok-skip-browser-warning": "true", "Content-Type": "application/json" }, credentials: "include",
+        method: "POST", headers: { "ngrok-skip-browser-warning": "true", "Authorization": `Bearer ${localStorage.getItem("token")}`, "Content-Type": "application/json" }, credentials: "include",
         body: JSON.stringify({ email: "info.ptmprime@gmail.com", current_password: curPwd, new_password: newPwd, confirm_password: confPwd })
       });
       if (res.ok) { showToast("Password changed securely!", "success"); setCurPwd(""); setNewPwd(""); setConfPwd(""); playTTS("Master password changed securely."); }
@@ -423,7 +423,7 @@ export default function Dashboard() {
 
   const handleLogout = async () => {
     try { 
-      await fetch(`${API_URL}/api/v1/auth/logout`, { method: "POST", credentials: "include", headers: {"ngrok-skip-browser-warning": "true"} }); 
+      await fetch(`${API_URL}/api/v1/auth/logout`, { method: "POST", credentials: "include", headers: {"ngrok-skip-browser-warning": "true", "Authorization": `Bearer ${localStorage.getItem("token")}`} }); 
       localStorage.removeItem("user");
       window.location.href = "/"; 
     } 
