@@ -180,7 +180,7 @@ export default function AdminDashboard() {
       async () => {
         setConfirmDialog(prev => ({...prev, isOpen: false}));
         try {
-          await fetch(`${API_URL}/api/v1/admin/users/${userId}/${isBanned ? 'unban' : 'ban'}`, { method: "POST", credentials: "include" });
+          await fetch(`${API_URL}/api/v1/admin/users/${userId}/${isBanned ? 'unban' : 'ban'}`, { method: "POST", credentials: "include", headers: {"ngrok-skip-browser-warning": "true"} });
           showToast(`User ${isBanned ? 'reactivated' : 'banned'} successfully`, "success");
           fetchLive();
         } catch (e) { showToast("Action failed", "error"); }
@@ -196,7 +196,7 @@ export default function AdminDashboard() {
       async () => {
         setConfirmDialog(prev => ({...prev, isOpen: false}));
         try {
-          await fetch(`${API_URL}/api/v1/admin/users/${userId}/stop-engine`, { method: "POST", credentials: "include" });
+          await fetch(`${API_URL}/api/v1/admin/users/${userId}/stop-engine`, { method: "POST", credentials: "include", headers: {"ngrok-skip-browser-warning": "true"} });
           showToast("Engine stopped successfully", "success");
           fetchLive();
         } catch (e) { showToast("Action failed", "error"); }
@@ -212,7 +212,7 @@ export default function AdminDashboard() {
       async () => {
         setConfirmDialog(prev => ({...prev, isOpen: false}));
         try {
-          await fetch(`${API_URL}/api/v1/admin/system/emergency-stop`, { method: "POST", credentials: "include" });
+          await fetch(`${API_URL}/api/v1/admin/system/emergency-stop`, { method: "POST", credentials: "include", headers: {"ngrok-skip-browser-warning": "true"} });
           showToast("Emergency Stop Executed. All engines halted.", "success");
           fetchLive();
         } catch (e) { showToast("Action failed", "error"); }
@@ -240,7 +240,7 @@ export default function AdminDashboard() {
 
   const handleLogout = async () => {
     try {
-      await fetch(`${API_URL}/api/v1/auth/logout`, { method: "POST", credentials: "include" });
+      await fetch(`${API_URL}/api/v1/auth/logout`, { method: "POST", credentials: "include", headers: {"ngrok-skip-browser-warning": "true"} });
       window.location.href = "/";
     } catch(e) { window.location.href = "/"; }
   };

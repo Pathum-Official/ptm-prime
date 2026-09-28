@@ -122,7 +122,7 @@ export default function Dashboard() {
 
   const fetchHistory = async () => {
     try {
-      const res = await fetch(`${API_URL}/api/v1/bot/history`, {credentials: "include"});
+      const res = await fetch(`${API_URL}/api/v1/bot/history`, {credentials: "include", headers: {"ngrok-skip-browser-warning": "true"}});
       if (res.ok) setTradeHistory(await res.json());
     } catch(e) {}
   };
@@ -152,7 +152,7 @@ export default function Dashboard() {
   useEffect(() => {
     const loadSettings = async () => {
       try {
-        const res = await fetch(`${API_URL}/api/v1/users/me`, {credentials: "include"});
+        const res = await fetch(`${API_URL}/api/v1/users/me`, {credentials: "include", headers: {"ngrok-skip-browser-warning": "true"}});
         if (!res.ok) {
           router.push("/");
           return;
@@ -186,21 +186,21 @@ export default function Dashboard() {
           }
         
         // Fetch current bot running status
-        const statusRes = await fetch(`${API_URL}/api/v1/bot/status`, {credentials: "include"});
+        const statusRes = await fetch(`${API_URL}/api/v1/bot/status`, {credentials: "include", headers: {"ngrok-skip-browser-warning": "true"}});
         if (statusRes.ok) {
           const statusData = await statusRes.json();
           setIsRunning(statusData.running);
         }
         
         // Fetch account balance independently
-        const balanceRes = await fetch(`${API_URL}/api/v1/bot/balance`, {credentials: "include"});
+        const balanceRes = await fetch(`${API_URL}/api/v1/bot/balance`, {credentials: "include", headers: {"ngrok-skip-browser-warning": "true"}});
         if (balanceRes.ok) {
           const balData = await balanceRes.json();
           if (balData.balance !== null) setAccountBalance(balData.balance);
         }
         
         // Fetch trade history
-        const historyRes = await fetch(`${API_URL}/api/v1/bot/history`, {credentials: "include"});
+        const historyRes = await fetch(`${API_URL}/api/v1/bot/history`, {credentials: "include", headers: {"ngrok-skip-browser-warning": "true"}});
         if (historyRes.ok) {
           const histData = await historyRes.json();
           setTradeHistory(histData);
@@ -279,7 +279,7 @@ export default function Dashboard() {
         else triggerFlash('loss');
         
         // Refresh history
-        fetch(`${API_URL}/api/v1/bot/history`, {credentials: "include"})
+        fetch(`${API_URL}/api/v1/bot/history`, {credentials: "include", headers: {"ngrok-skip-browser-warning": "true"}})
           .then(res => res.ok ? res.json() : [])
           .then(hist => setTradeHistory(hist))
           .catch(() => {});
@@ -423,7 +423,7 @@ export default function Dashboard() {
 
   const handleLogout = async () => {
     try { 
-      await fetch(`${API_URL}/api/v1/auth/logout`, { method: "POST", credentials: "include" }); 
+      await fetch(`${API_URL}/api/v1/auth/logout`, { method: "POST", credentials: "include", headers: {"ngrok-skip-browser-warning": "true"} }); 
       localStorage.removeItem("user");
       window.location.href = "/"; 
     } 
