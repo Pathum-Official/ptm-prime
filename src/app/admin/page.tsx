@@ -59,14 +59,14 @@ export default function AdminDashboard() {
 
   const fetchData = async () => {
     try {
-      const statRes = await fetch(`${API_URL}/api/v1/admin/stats`, { credentials: "omit" }); // Next.js middleware relies on browser cookies, but fetch within same localhost port 3000 -> 8000 needs credentials. Wait, since we fetch from client to 8000, we MUST send credentials: "include" to pass the cookie.
+      const statRes = await fetch(`${API_URL}/api/v1/admin/stats`, { credentials: "omit", headers: {"ngrok-skip-browser-warning": "true", "Authorization": `Bearer ${localStorage.getItem("token")}`} }); // Next.js middleware relies on browser cookies, but fetch within same localhost port 3000 -> 8000 needs credentials. Wait, since we fetch from client to 8000, we MUST send credentials: "include" to pass the cookie.
       // We will actually just use the fetch below with credentials.
     } catch (e) {}
   };
   
   const fetchLive = async () => {
     try {
-      const authRes = await fetch(`${API_URL}/api/v1/users/me`, { credentials: "include" });
+      const authRes = await fetch(`${API_URL}/api/v1/users/me`, { credentials: "include", headers: {"ngrok-skip-browser-warning": "true", "Authorization": `Bearer ${localStorage.getItem("token")}`} });
       if (!authRes.ok) {
         router.push("/");
         return;
@@ -78,13 +78,13 @@ export default function AdminDashboard() {
       }
       setIsAuthenticated(true);
       
-      const statRes = await fetch(`${API_URL}/api/v1/admin/stats`, { credentials: "include" });
+      const statRes = await fetch(`${API_URL}/api/v1/admin/stats`, { credentials: "include", headers: {"ngrok-skip-browser-warning": "true", "Authorization": `Bearer ${localStorage.getItem("token")}`} });
       if (statRes.ok) setStats(await statRes.json());
       
-      const userRes = await fetch(`${API_URL}/api/v1/admin/users`, { credentials: "include" });
+      const userRes = await fetch(`${API_URL}/api/v1/admin/users`, { credentials: "include", headers: {"ngrok-skip-browser-warning": "true", "Authorization": `Bearer ${localStorage.getItem("token")}`} });
       if (userRes.ok) setClients(await userRes.json());
 
-      const ticketRes = await fetch(`${API_URL}/api/v1/support/admin/tickets`, { credentials: "include" });
+      const ticketRes = await fetch(`${API_URL}/api/v1/support/admin/tickets`, { credentials: "include", headers: {"ngrok-skip-browser-warning": "true", "Authorization": `Bearer ${localStorage.getItem("token")}`} });
       if (ticketRes.ok) setTickets(await ticketRes.json());
     } catch (e) {
       console.error("Failed to load admin data");
@@ -100,7 +100,7 @@ export default function AdminDashboard() {
   const loadTicketMessages = async (ticket: any) => {
     setSelectedTicket(ticket);
     try {
-      const res = await fetch(`${API_URL}/api/v1/support/tickets/${ticket.id}/messages`, { credentials: "include" });
+      const res = await fetch(`${API_URL}/api/v1/support/tickets/${ticket.id}/messages`, { credentials: "include", headers: {"ngrok-skip-browser-warning": "true", "Authorization": `Bearer ${localStorage.getItem("token")}`} });
       if (res.ok) {
         setTicketMessages(await res.json());
         setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }), 100);
