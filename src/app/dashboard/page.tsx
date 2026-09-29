@@ -257,7 +257,9 @@ export default function Dashboard() {
   };
 
   useEffect(() => {
-    const ws = new WebSocket(`${WS_URL}/ws/dashboard`);
+    // Send the JWT token as a query parameter for isolated WebSocket sessions
+    const token = localStorage.getItem("token");
+    const ws = new WebSocket(`${WS_URL}/ws/dashboard?token=${token}`);
     
     // playTTS is now defined globally for the component
 
