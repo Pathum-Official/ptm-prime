@@ -52,7 +52,8 @@ export default function Dashboard() {
   const [curPwd, setCurPwd] = useState("");
   const [newPwd, setNewPwd] = useState("");
   const [confPwd, setConfPwd] = useState("");
-  const [derivToken, setDerivToken] = useState("");
+  const [derivDemoToken, setDerivDemoToken] = useState("");
+  const [derivRealToken, setDerivRealToken] = useState("");
   const [telegramId, setTelegramId] = useState("");
   const [telegramOtpSent, setTelegramOtpSent] = useState(false);
   const [telegramOtp, setTelegramOtp] = useState("");
@@ -154,7 +155,8 @@ export default function Dashboard() {
   };
 
   const [hasSavedTelegram, setHasSavedTelegram] = useState(false);
-  const [hasSavedToken, setHasSavedToken] = useState(false);
+  const [hasDemoToken, setHasDemoToken] = useState(false);
+  const [hasRealToken, setHasRealToken] = useState(false);
   const [userName, setUserName] = useState("Elite Member");
 
   const fetchBalance = async (accType: string) => {
@@ -190,7 +192,10 @@ export default function Dashboard() {
             setTelegramId(data.telegram_id);
             setHasSavedTelegram(true);
           }
-          if (data.has_deriv_token) setHasSavedToken(true);
+          if (data.has_demo_token) setHasDemoToken(true);
+          if (data.has_real_token) setHasRealToken(true);
+          // Legacy support: if has_deriv_token is true but specific ones aren't, consider it real
+          if (data.has_deriv_token && !data.has_real_token && !data.has_demo_token) setHasRealToken(true);
           if (data.logic) {
             setStrategy(data.logic.active_strategy);
             setInitialStake(data.logic.stake_amount);
@@ -239,9 +244,16 @@ export default function Dashboard() {
     try {
       const res = await fetch(`${API_URL}/api/v1/users/settings/deriv`, {
         method: "POST", headers: { "ngrok-skip-browser-warning": "true", "Authorization": `Bearer ${localStorage.getItem("token")}`, "Content-Type": "application/json" }, credentials: "include",
-        body: JSON.stringify({ token: derivToken })
+        body: JSON.stringify({ demo_token: derivDemoToken || null, real_token: derivRealToken || null })
       });
-      if (res.ok) { showToast("Deriv token securely updated!", "success"); setDerivToken(""); playTTS("API credentials updated and encrypted."); }
+      if (res.ok) { 
+        showToast("Deriv tokens securely updated!", "success"); 
+        if (derivDemoToken) setHasDemoToken(true);
+        if (derivRealToken) setHasRealToken(true);
+        setDerivDemoToken(""); 
+        setDerivRealToken("");
+        playTTS("API credentials updated and encrypted."); 
+      }
       else { showToast("Failed to update token.", "error"); playTTS("Failed to update token."); }
     } catch (e) { showToast("API unreachable.", "error"); }
   };
@@ -594,22 +606,47 @@ export default function Dashboard() {
              
              <div className="bg-[rgba(18,18,22,0.85)] border border-red-500/20 rounded-3xl p-6 backdrop-blur-md shadow-[0_10px_30px_rgba(220,38,38,0.05)]">
                 <h3 className="text-[#C5A059] text-[10px] uppercase tracking-widest font-bold mb-6 flex items-center gap-2"><Wallet className="w-4 h-4"/> API Credentials</h3>
-                {hasSavedToken ? (
-                  <div className="flex flex-col items-center justify-center py-6 gap-3">
-                    <div className="w-12 h-12 rounded-full bg-green-500/20 flex items-center justify-center text-green-500">
-                      <ShieldAlert className="w-6 h-6" />
-                    </div>
-                    <p className="text-white font-bold tracking-widest text-sm">API TOKEN SECURELY ENCRYPTED</p>
-                    <p className="text-slate-400 text-xs text-center px-4 mb-4">Your Deriv Token is active: <span className="font-mono text-[#D4AF37]">********************</span></p>
-                    <button onClick={() => setHasSavedToken(false)} className="border border-red-500/50 text-red-500 font-bold py-2 px-6 rounded-full uppercase tracking-widest text-[10px] hover:bg-red-500/10 transition-all">Overwrite Token</button>
-                  </div>
-                ) : (
-                  <div className="flex flex-col gap-4">
-                    <input type="password" placeholder="Enter new Deriv Token to overwrite" value={derivToken} onChange={e=>setDerivToken(e.target.value)} className="w-full bg-[#0B0B0E] border border-slate-700 rounded-xl px-4 py-3 text-slate-300 outline-none font-mono focus:border-[#D4AF37]" />
-                    <button onClick={async () => { await handleUpdateDeriv(); setHasSavedToken(true); }} className="border border-[#D4AF37] text-[#FFD700] font-bold py-3 rounded-xl uppercase tracking-widest text-[10px] hover:bg-[#D4AF37]/10 transition-all">Update & Encrypt Deriv Token</button>
-                  </div>
-                )}
-             </div>
+                 
+                 <div className="flex flex-col gap-6">
+                   {/* DEMO TOKEN SECTION */}
+                   <div className="bg-black/30 p-4 rounded-xl border border-slate-800">
+                     <h4 className="text-slate-300 text-[10px] font-bold uppercase mb-3 flex items-center justify-between">
+                        Demo API Token
+                        {hasDemoToken && <span className="text-green-500 text-[9px] px-2 py-0.5 bg-green-500/10 rounded-full">SECURE</span>}
+                     </h4>
+                     {hasDemoToken ? (
+                       <div className="flex items-center justify-between mt-2">
+                         <p className="text-slate-400 text-xs"><span className="font-mono text-[#D4AF37]">********************</span></p>
+                         <button onClick={() => setHasDemoToken(false)} className="text-red-500 font-bold text-[10px] uppercase hover:underline">Overwrite</button>
+                       </div>
+                     ) : (
+                       <input type="password" placeholder="Enter Demo Token" value={derivDemoToken} onChange={e=>setDerivDemoToken(e.target.value)} className="w-full bg-[#0B0B0E] border border-slate-700 rounded-lg px-3 py-2 text-slate-300 outline-none font-mono focus:border-[#D4AF37] text-xs" />
+                     )}
+                   </div>
+
+                   {/* REAL TOKEN SECTION */}
+                   <div className="bg-black/30 p-4 rounded-xl border border-slate-800">
+                     <h4 className="text-slate-300 text-[10px] font-bold uppercase mb-3 flex items-center justify-between">
+                        Real API Token
+                        {hasRealToken && <span className="text-green-500 text-[9px] px-2 py-0.5 bg-green-500/10 rounded-full">SECURE</span>}
+                     </h4>
+                     {hasRealToken ? (
+                       <div className="flex items-center justify-between mt-2">
+                         <p className="text-slate-400 text-xs"><span className="font-mono text-[#D4AF37]">********************</span></p>
+                         <button onClick={() => setHasRealToken(false)} className="text-red-500 font-bold text-[10px] uppercase hover:underline">Overwrite</button>
+                       </div>
+                     ) : (
+                       <input type="password" placeholder="Enter Real Token" value={derivRealToken} onChange={e=>setDerivRealToken(e.target.value)} className="w-full bg-[#0B0B0E] border border-slate-700 rounded-lg px-3 py-2 text-slate-300 outline-none font-mono focus:border-[#D4AF37] text-xs" />
+                     )}
+                   </div>
+
+                   {(!hasDemoToken || !hasRealToken) && (
+                     <button onClick={handleUpdateDeriv} className="border border-[#D4AF37] text-[#FFD700] font-bold py-3 rounded-xl uppercase tracking-widest text-[10px] hover:bg-[#D4AF37]/10 transition-all w-full mt-2">
+                       Update & Encrypt Tokens
+                     </button>
+                   )}
+                 </div>
+              </div>
 
              <div className="bg-[rgba(18,18,22,0.85)] border border-[#3b82f6]/20 rounded-3xl p-6 backdrop-blur-md shadow-[0_10px_30px_rgba(59,130,246,0.05)] relative overflow-hidden">
                 <h3 className="text-[#3b82f6] text-[10px] uppercase tracking-widest font-bold mb-3 flex items-center gap-2">📱 Telegram Alert Link</h3>
