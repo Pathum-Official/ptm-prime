@@ -157,6 +157,16 @@ export default function Dashboard() {
   const [hasSavedToken, setHasSavedToken] = useState(false);
   const [userName, setUserName] = useState("Elite Member");
 
+  const fetchBalance = async (accType: string) => {
+    try {
+      const balanceRes = await fetch(`${API_URL}/api/v1/bot/balance?account_type=${accType}`, {credentials: "include", headers: {"ngrok-skip-browser-warning": "true", "Authorization": `Bearer ${localStorage.getItem("token")}`}});
+      if (balanceRes.ok) {
+        const balData = await balanceRes.json();
+        if (balData.balance !== null) setAccountBalance(balData.balance);
+      }
+    } catch (e) {}
+  };
+
   useEffect(() => {
     const loadSettings = async () => {
       try {
@@ -201,11 +211,7 @@ export default function Dashboard() {
         }
         
         // Fetch account balance independently
-        const balanceRes = await fetch(`${API_URL}/api/v1/bot/balance`, {credentials: "include", headers: {"ngrok-skip-browser-warning": "true", "Authorization": `Bearer ${localStorage.getItem("token")}`}});
-        if (balanceRes.ok) {
-          const balData = await balanceRes.json();
-          if (balData.balance !== null) setAccountBalance(balData.balance);
-        }
+        await fetchBalance(localStorage.getItem("ptm_account_type") || "demo");
         
         // Fetch trade history
         const historyRes = await fetch(`${API_URL}/api/v1/bot/history`, {credentials: "include", headers: {"ngrok-skip-browser-warning": "true", "Authorization": `Bearer ${localStorage.getItem("token")}`}});
@@ -493,6 +499,8 @@ export default function Dashboard() {
               const newType = accountType === 'demo' ? 'real' : 'demo';
               setAccountType(newType);
               localStorage.setItem("ptm_account_type", newType);
+              setAccountBalance(0); // Reset UI while loading
+              fetchBalance(newType);
               playTTS(`Switched to ${newType} account.`); 
             }} className={`hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full border text-[10px] font-bold uppercase tracking-widest transition-all shadow-[0_0_10px_rgba(0,0,0,0.5)] ${accountType === 'demo' ? 'bg-[#D4AF37]/20 text-[#FFD700] border-[#D4AF37]/50' : 'bg-green-500/20 text-green-400 border-green-500/50'}`}>
               {accountType === 'demo' ? 'DEMO' : 'REAL'}
