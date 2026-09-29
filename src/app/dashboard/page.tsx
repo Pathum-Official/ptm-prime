@@ -40,7 +40,7 @@ export default function Dashboard() {
   const [currentStake, setCurrentStake] = useState(0.00);
   const [liveTick, setLiveTick] = useState<number | null>(null);
   const [accountBalance, setAccountBalance] = useState<number | null>(null);
-  const [latestSignal, setLatestSignal] = useState<string>("Analyzing...");
+  const [latestSignal, setLatestSignal] = useState<string>("Analyzing Physics...");
   
   // Terminal Logs
   const [logs, setLogs] = useState<{id: string, text: string, type: 'info'|'success'|'error'|'trade'|'alert', timestamp: string}[]>([]);
@@ -509,7 +509,7 @@ export default function Dashboard() {
               <StatBox title="Session PnL" value={`$${pnl.toFixed(2)}`} color={pnl >= 0 ? 'text-green-400' : 'text-red-500'} icon={<Wallet className="w-4 h-4 text-green-400" />} />
               <StatBox title="Win Rate" value={`${winRate.toFixed(1)}%`} color="text-[#FFD700]" icon={<TrendingUp className="w-4 h-4 text-[#FFD700]" />} glow={true}/>
               <StatBox title="Active Stake" value={`$${currentStake.toFixed(2)}`} color="text-[#C5A059]" icon={<Target className="w-4 h-4 text-[#C5A059]" />} />
-              <StatBox title="Index (R_10)" value={liveTick ? liveTick.toFixed(3) : '...'} color={isRunning ? 'text-white' : 'text-slate-600'} icon={<Activity className={`w-4 h-4 ${isRunning ? 'animate-pulse text-[#D4AF37]' : 'text-slate-600'}`} />} glow={isRunning} />
+              <StatBox title="Index (10V)" value={liveTick ? liveTick.toFixed(3) : '...'} color={isRunning ? 'text-white' : 'text-slate-600'} icon={<Activity className={`w-4 h-4 ${isRunning ? 'animate-pulse text-[#D4AF37]' : 'text-slate-600'}`} />} glow={isRunning} />
               <StatBox title="Current Signal" value={<span className={latestSignal.includes('No') || latestSignal.includes('Analyzing') ? 'text-sm text-slate-400' : 'text-lg text-[#FFD700]'}>{latestSignal}</span>} color="" icon={<TrendingUp className="w-4 h-4 text-[#3b82f6]" />} glow={!latestSignal.includes('Analyzing')} />
             </div>
             
