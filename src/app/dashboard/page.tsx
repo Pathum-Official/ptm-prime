@@ -285,9 +285,9 @@ export default function Dashboard() {
           .catch(() => {});
           
         setLogs(prev => [{
-          id: Date.now().toString(),
-          text: data.message || `Trade ${data.contract_id || 'Closed'} with Profit: $${data.profit.toFixed(2)}`,
-          type: data.profit >= 0 ? 'success' : 'error',
+          id: Date.now().toString() + Math.random().toString(36).substring(2, 9),
+          text: data.message || `Trade ${data.contract_id || 'Closed'} with Profit: $${(data.profit || 0).toFixed(2)}`,
+          type: (data.profit || 0) >= 0 ? 'success' as const : 'error' as const,
           timestamp: new Date().toLocaleTimeString()
         }, ...prev].slice(0, 50));
         
