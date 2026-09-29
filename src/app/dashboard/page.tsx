@@ -539,16 +539,16 @@ export default function Dashboard() {
             <div className="bg-[rgba(18,18,22,0.85)] border border-[rgba(212,175,55,0.25)] rounded-3xl p-6 backdrop-blur-md shadow-[0_10px_30px_rgba(0,0,0,0.5)]">
               <label className="block text-[#C5A059] text-[10px] uppercase tracking-widest font-bold mb-4">Active Strategy Core</label>
               <select value={strategyCore} onChange={e => { setStrategyCore(e.target.value); playTTS("Strategy core selected."); }} className="w-full bg-[#0B0B0E] border border-[#D4AF37]/30 rounded-xl px-4 py-3 text-[#FFD700] outline-none focus:border-[#FFD700]">
-                <option value="apex">PTM Apex Confluence (RSI + EMA 100% Win Rate Focus)</option>
-                <option value="sniper">Classic RSI Sniper (Trend Reversal)</option>
+                <option value="apex_momentum">Apex Momentum Engine (Tick Velocity + Exhaustion)</option>
+                <option value="rubber_band">Rubber-Band Spike Reversion (Extreme Over-extension)</option>
               </select>
             </div>
 
             <div className="bg-[rgba(18,18,22,0.85)] border border-[rgba(212,175,55,0.25)] rounded-3xl p-6 backdrop-blur-md shadow-[0_10px_30px_rgba(0,0,0,0.5)]">
               <label className="block text-[#C5A059] text-[10px] uppercase tracking-widest font-bold mb-4">Signal Confidence Threshold</label>
               <select value={confidenceThreshold} onChange={e => { setConfidenceThreshold(e.target.value); playTTS("Signal confidence threshold updated."); }} className="w-full bg-[#0B0B0E] border border-[#D4AF37]/30 rounded-xl px-4 py-3 text-[#FFD700] outline-none focus:border-[#FFD700]">
-                <option value="high">High (RSI &lt; 20 / &gt; 80)</option>
-                <option value="medium">Medium (RSI &lt; 30 / &gt; 70)</option>
+                <option value="strict">Strict (Wait for Exhaustion + Extreme Spike)</option>
+                <option value="medium">Aggressive (Trade on Velocity Spikes Only)</option>
               </select>
             </div>
             
