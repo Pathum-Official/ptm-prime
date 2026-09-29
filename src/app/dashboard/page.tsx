@@ -120,6 +120,14 @@ export default function Dashboard() {
   const [confidenceThreshold, setConfidenceThreshold] = useState("high");
   const [accountType, setAccountType] = useState("demo");
 
+  // Load account type from localStorage on mount
+  useEffect(() => {
+    const savedType = localStorage.getItem("ptm_account_type");
+    if (savedType === "real" || savedType === "demo") {
+      setAccountType(savedType);
+    }
+  }, []);
+
   const fetchHistory = async () => {
     try {
       const res = await fetch(`${API_URL}/api/v1/bot/history`, {credentials: "include", headers: {"ngrok-skip-browser-warning": "true", "Authorization": `Bearer ${localStorage.getItem("token")}`}});
@@ -476,7 +484,17 @@ export default function Dashboard() {
             </div>
           </div>
           <div className="flex gap-4 items-center">
-            <button onClick={() => { setAccountType(a => a === 'demo' ? 'real' : 'demo'); playTTS(`Switched to ${accountType === 'demo' ? 'real' : 'demo'} account.`); }} className={`hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full border text-[10px] font-bold uppercase tracking-widest transition-all shadow-[0_0_10px_rgba(0,0,0,0.5)] ${accountType === 'demo' ? 'bg-[#D4AF37]/20 text-[#FFD700] border-[#D4AF37]/50' : 'bg-green-500/20 text-green-400 border-green-500/50'}`}>
+            <button onClick={() => { 
+              if (isRunning) {
+                showToast("Halt engine before switching accounts.", "error");
+                playTTS("Please halt the engine before switching accounts.");
+                return;
+              }
+              const newType = accountType === 'demo' ? 'real' : 'demo';
+              setAccountType(newType);
+              localStorage.setItem("ptm_account_type", newType);
+              playTTS(`Switched to ${newType} account.`); 
+            }} className={`hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full border text-[10px] font-bold uppercase tracking-widest transition-all shadow-[0_0_10px_rgba(0,0,0,0.5)] ${accountType === 'demo' ? 'bg-[#D4AF37]/20 text-[#FFD700] border-[#D4AF37]/50' : 'bg-green-500/20 text-green-400 border-green-500/50'}`}>
               {accountType === 'demo' ? 'DEMO' : 'REAL'}
             </button>
             <button onClick={() => { setVoiceEnabled(!voiceEnabled); if (!voiceEnabled) { setTimeout(() => playTTS("Voice systems activated."), 100); } }} className={`hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full border text-[10px] font-bold uppercase tracking-widest transition-all ${voiceEnabled ? 'bg-blue-500/20 text-blue-400 border-blue-500/30' : 'bg-slate-800 text-slate-400 border-slate-700'}`}>
