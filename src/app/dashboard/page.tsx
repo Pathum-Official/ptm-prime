@@ -581,6 +581,7 @@ export default function Dashboard() {
               <select value={strategyCore} onChange={e => { setStrategyCore(e.target.value); playTTS("Strategy core selected."); }} className="w-full bg-[#0B0B0E] border border-[#D4AF37]/30 rounded-xl px-4 py-3 text-[#FFD700] outline-none focus:border-[#FFD700]">
                 <option value="apex_momentum">Apex Momentum Engine (Tick Velocity + Exhaustion)</option>
                 <option value="rubber_band">Rubber-Band Spike Reversion (Extreme Over-extension)</option>
+                <option value="vietnam_smart_scan">Advanced Vietnam Logic (Deep Market Scan & RSI)</option>
               </select>
             </div>
 
