@@ -33,6 +33,8 @@ export default function Dashboard() {
   const [cooldownPeriod, setCooldownPeriod] = useState(0);
   const [winCooldown, setWinCooldown] = useState(0);
   const [lossCooldown, setLossCooldown] = useState(0);
+  const [maxMartingaleSteps, setMaxMartingaleSteps] = useState(3);
+  const [circuitBreakerPause, setCircuitBreakerPause] = useState(15);
   
   // Live State
   const [pnl, setPnl] = useState(0.00);
@@ -237,7 +239,7 @@ export default function Dashboard() {
     try {
       const res = await fetch(`${API_URL}/api/v1/users/settings/logic`, {
         method: "POST", headers: { "ngrok-skip-browser-warning": "true", "Authorization": `Bearer ${localStorage.getItem("token")}`, "Content-Type": "application/json" }, credentials: "include",
-        body: JSON.stringify({ active_strategy: strategy, strategy_core: strategyCore, active_symbol: activeSymbol, tick_duration: tickDuration, stake_amount: initialStake, take_profit: targetProfit, stop_loss: stopLoss, martingale_multiplier: multiplier, cooldown_period: cooldownPeriod, win_cooldown: winCooldown, loss_cooldown: lossCooldown })
+        body: JSON.stringify({ active_strategy: strategy, strategy_core: strategyCore, active_symbol: activeSymbol, tick_duration: tickDuration, stake_amount: initialStake, take_profit: targetProfit, stop_loss: stopLoss, martingale_multiplier: multiplier, cooldown_period: cooldownPeriod, win_cooldown: winCooldown, loss_cooldown: lossCooldown, max_martingale_steps: maxMartingaleSteps, circuit_breaker_pause: circuitBreakerPause })
       });
       if (res.ok) { showToast("Logic configuration saved successfully!", "success"); playTTS("Money management logic securely locked and saved."); }
       else { showToast("Failed to save logic.", "error"); playTTS("Failed to save configuration."); }
@@ -418,6 +420,8 @@ export default function Dashboard() {
           strategy_core: strategyCore,
           active_symbol: activeSymbol,
           tick_duration: tickDuration,
+          max_martingale_steps: maxMartingaleSteps,
+          circuit_breaker_pause: circuitBreakerPause,
           account_type: accountType
         })
       });
@@ -746,6 +750,17 @@ export default function Dashboard() {
                   <div className="col-span-1 mt-2">
                     <label className="block text-red-400 text-[10px] uppercase tracking-widest font-bold mb-2">Loss Sleep (Sec)</label>
                     <input type="number" value={lossCooldown} onChange={e => setLossCooldown(Number(e.target.value))} placeholder="e.g. 30" className="w-full bg-[#0B0B0E] border border-red-500/30 rounded-xl px-4 py-3 text-red-400 outline-none focus:border-red-400" />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4 mb-6">
+                  <div className="col-span-1">
+                    <label className="block text-red-400 text-[10px] uppercase tracking-widest font-bold mb-2">Max Losses (Circuit Breaker)</label>
+                    <input type="number" value={maxMartingaleSteps} onChange={e => setMaxMartingaleSteps(Number(e.target.value))} placeholder="e.g. 3" className="w-full bg-[#0B0B0E] border border-red-500/30 rounded-xl px-4 py-3 text-red-400 outline-none focus:border-red-400" />
+                  </div>
+                  <div className="col-span-1">
+                    <label className="block text-[#C5A059] text-[10px] uppercase tracking-widest font-bold mb-2">Pause Duration (Mins)</label>
+                    <input type="number" value={circuitBreakerPause} onChange={e => setCircuitBreakerPause(Number(e.target.value))} placeholder="e.g. 15" className="w-full bg-[#0B0B0E] border border-[#D4AF37]/30 rounded-xl px-4 py-3 text-[#FFD700] outline-none focus:border-[#FFD700]" />
                   </div>
                 </div>
                
