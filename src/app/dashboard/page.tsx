@@ -581,6 +581,7 @@ export default function Dashboard() {
                 <option value="apex_momentum">Apex Momentum Engine (Tick Velocity + Exhaustion)</option>
                 <option value="rubber_band">Rubber-Band Spike Reversion (Extreme Over-extension)</option>
                 <option value="vietnam_smart_scan">Advanced Vietnam Logic (Deep Market Scan & RSI)</option>
+                <option value="low_vol_rsi_bb">Low-Vol RSI-Bollinger Reversal (V10 / 1s Optimized)</option>
               </select>
             </div>
             
