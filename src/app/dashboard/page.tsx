@@ -119,6 +119,7 @@ export default function Dashboard() {
   // Logic Settings State
   const [strategyCore, setStrategyCore] = useState("apex");
   const [activeSymbol, setActiveSymbol] = useState("1HZ100V");
+  const [tickDuration, setTickDuration] = useState(5);
   const [accountType, setAccountType] = useState("demo");
 
   // Load account type from localStorage on mount
@@ -200,6 +201,7 @@ export default function Dashboard() {
             setStrategy(data.logic.active_strategy);
             if (data.logic.strategy_core) setStrategyCore(data.logic.strategy_core);
             if (data.logic.active_symbol) setActiveSymbol(data.logic.active_symbol);
+            if (data.logic.tick_duration !== undefined) setTickDuration(data.logic.tick_duration);
             setInitialStake(data.logic.stake_amount);
             setCurrentStake(data.logic.stake_amount);
             setTargetProfit(data.logic.take_profit);
@@ -235,7 +237,7 @@ export default function Dashboard() {
     try {
       const res = await fetch(`${API_URL}/api/v1/users/settings/logic`, {
         method: "POST", headers: { "ngrok-skip-browser-warning": "true", "Authorization": `Bearer ${localStorage.getItem("token")}`, "Content-Type": "application/json" }, credentials: "include",
-        body: JSON.stringify({ active_strategy: strategy, strategy_core: strategyCore, active_symbol: activeSymbol, stake_amount: initialStake, take_profit: targetProfit, stop_loss: stopLoss, martingale_multiplier: multiplier, cooldown_period: cooldownPeriod, win_cooldown: winCooldown, loss_cooldown: lossCooldown })
+        body: JSON.stringify({ active_strategy: strategy, strategy_core: strategyCore, active_symbol: activeSymbol, tick_duration: tickDuration, stake_amount: initialStake, take_profit: targetProfit, stop_loss: stopLoss, martingale_multiplier: multiplier, cooldown_period: cooldownPeriod, win_cooldown: winCooldown, loss_cooldown: lossCooldown })
       });
       if (res.ok) { showToast("Logic configuration saved successfully!", "success"); playTTS("Money management logic securely locked and saved."); }
       else { showToast("Failed to save logic.", "error"); playTTS("Failed to save configuration."); }
@@ -415,6 +417,7 @@ export default function Dashboard() {
           loss_cooldown: lossCooldown,
           strategy_core: strategyCore,
           active_symbol: activeSymbol,
+          tick_duration: tickDuration,
           account_type: accountType
         })
       });
@@ -601,6 +604,15 @@ export default function Dashboard() {
                 <option value="R_50">Volatility 50 Index</option>
                 <option value="R_75">Volatility 75 Index</option>
                 <option value="R_100">Volatility 100 Index</option>
+              </select>
+            </div>
+
+            <div className="bg-[rgba(18,18,22,0.85)] border border-[rgba(212,175,55,0.25)] rounded-3xl p-6 backdrop-blur-md shadow-[0_10px_30px_rgba(0,0,0,0.5)] mt-4">
+              <label className="block text-[#C5A059] text-[10px] uppercase tracking-widest font-bold mb-4">Trade Duration (Ticks)</label>
+              <select value={tickDuration} onChange={e => { setTickDuration(Number(e.target.value)); playTTS("Trade duration updated."); }} className="w-full bg-[#0B0B0E] border border-[#D4AF37]/30 rounded-xl px-4 py-3 text-[#FFD700] outline-none focus:border-[#FFD700]">
+                {[...Array(10)].map((_, i) => (
+                  <option key={i+1} value={i+1}>{i+1} Tick{i+1 !== 1 ? 's' : ''}</option>
+                ))}
               </select>
             </div>
             
