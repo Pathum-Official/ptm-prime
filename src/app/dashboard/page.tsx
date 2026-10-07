@@ -118,7 +118,6 @@ export default function Dashboard() {
 
   // Logic Settings State
   const [strategyCore, setStrategyCore] = useState("apex");
-  const [confidenceThreshold, setConfidenceThreshold] = useState("high");
   const [accountType, setAccountType] = useState("demo");
 
   // Load account type from localStorage on mount
@@ -198,6 +197,7 @@ export default function Dashboard() {
           if (data.has_deriv_token && !data.has_real_token && !data.has_demo_token) setHasRealToken(true);
           if (data.logic) {
             setStrategy(data.logic.active_strategy);
+            if (data.logic.strategy_core) setStrategyCore(data.logic.strategy_core);
             setInitialStake(data.logic.stake_amount);
             setCurrentStake(data.logic.stake_amount);
             setTargetProfit(data.logic.take_profit);
@@ -233,7 +233,7 @@ export default function Dashboard() {
     try {
       const res = await fetch(`${API_URL}/api/v1/users/settings/logic`, {
         method: "POST", headers: { "ngrok-skip-browser-warning": "true", "Authorization": `Bearer ${localStorage.getItem("token")}`, "Content-Type": "application/json" }, credentials: "include",
-        body: JSON.stringify({ active_strategy: strategy, stake_amount: initialStake, take_profit: targetProfit, stop_loss: stopLoss, martingale_multiplier: multiplier, cooldown_period: cooldownPeriod, win_cooldown: winCooldown, loss_cooldown: lossCooldown })
+        body: JSON.stringify({ active_strategy: strategy, strategy_core: strategyCore, stake_amount: initialStake, take_profit: targetProfit, stop_loss: stopLoss, martingale_multiplier: multiplier, cooldown_period: cooldownPeriod, win_cooldown: winCooldown, loss_cooldown: lossCooldown })
       });
       if (res.ok) { showToast("Logic configuration saved successfully!", "success"); playTTS("Money management logic securely locked and saved."); }
       else { showToast("Failed to save logic.", "error"); playTTS("Failed to save configuration."); }
@@ -412,7 +412,6 @@ export default function Dashboard() {
           win_cooldown: winCooldown,
           loss_cooldown: lossCooldown,
           strategy_core: strategyCore,
-          confidence_threshold: confidenceThreshold,
           account_type: accountType
         })
       });
@@ -582,14 +581,6 @@ export default function Dashboard() {
                 <option value="apex_momentum">Apex Momentum Engine (Tick Velocity + Exhaustion)</option>
                 <option value="rubber_band">Rubber-Band Spike Reversion (Extreme Over-extension)</option>
                 <option value="vietnam_smart_scan">Advanced Vietnam Logic (Deep Market Scan & RSI)</option>
-              </select>
-            </div>
-
-            <div className="bg-[rgba(18,18,22,0.85)] border border-[rgba(212,175,55,0.25)] rounded-3xl p-6 backdrop-blur-md shadow-[0_10px_30px_rgba(0,0,0,0.5)]">
-              <label className="block text-[#C5A059] text-[10px] uppercase tracking-widest font-bold mb-4">Signal Confidence Threshold</label>
-              <select value={confidenceThreshold} onChange={e => { setConfidenceThreshold(e.target.value); playTTS("Signal confidence threshold updated."); }} className="w-full bg-[#0B0B0E] border border-[#D4AF37]/30 rounded-xl px-4 py-3 text-[#FFD700] outline-none focus:border-[#FFD700]">
-                <option value="strict">Strict (Wait for Exhaustion + Extreme Spike)</option>
-                <option value="medium">Aggressive (Trade on Velocity Spikes Only)</option>
               </select>
             </div>
             
