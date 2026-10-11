@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
 import { MessageCircle, X, Send, User, Mail, Phone } from "lucide-react";
+import { API_URL } from "@/app/config";
 
 export function LiveChat() {
   const [isOpen, setIsOpen] = useState(false);
@@ -47,7 +48,7 @@ export function LiveChat() {
 
   const fetchMessages = async (id: number) => {
     try {
-      const res = await fetch(`http://localhost:8000/api/v1/support/tickets/${id}/messages`);
+      const res = await fetch(`${API_URL}/api/v1/support/tickets/${id}/messages`);
       if (res.ok) setMessages(await res.json());
     } catch(e) {}
   };
@@ -56,7 +57,7 @@ export function LiveChat() {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      const res = await fetch("http://localhost:8000/api/v1/support/tickets", {
+      const res = await fetch(`${API_URL}/api/v1/support/tickets`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, email, phone, initial_message: initialMsg })
@@ -75,7 +76,7 @@ export function LiveChat() {
     e.preventDefault();
     if (!reply.trim() || !ticketId) return;
     try {
-      const res = await fetch(`http://localhost:8000/api/v1/support/tickets/${ticketId}/messages`, {
+      const res = await fetch(`${API_URL}/api/v1/support/tickets/${ticketId}/messages`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ content: reply })
