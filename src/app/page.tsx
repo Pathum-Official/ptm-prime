@@ -9,6 +9,54 @@ import {
 } from "lucide-react";
 import { Logo } from "@/components/Logo";
 
+function WhatsAppIcon({ className = "w-5 h-5" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/>
+    </svg>
+  );
+}
+
+function TelegramIcon({ className = "w-5 h-5" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+      <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.446 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.121l-6.871 4.326-2.962-.924c-.643-.204-.657-.643.136-.953l11.57-4.458c.538-.196 1.006.128.832.945z"/>
+    </svg>
+  );
+}
+
+function YouTubeIcon({ className = "w-5 h-5" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+      <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+    </svg>
+  );
+}
+
+function FacebookIcon({ className = "w-5 h-5" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+      <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+    </svg>
+  );
+}
+
+function InstagramIcon({ className = "w-5 h-5" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+      <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+    </svg>
+  );
+}
+
+function TikTokIcon({ className = "w-5 h-5" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+      <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64c.298 0 .586.044.86.126V9.4a6.33 6.33 0 0 0-.86-.06A6.34 6.34 0 0 0 3.1 15.68a6.34 6.34 0 0 0 6.34 6.34c3.5 0 6.34-2.84 6.34-6.34V9.32a8.28 8.28 0 0 0 4.77 1.5V7.37a4.85 4.85 0 0 1-.96-.68z"/>
+    </svg>
+  );
+}
+
 interface PricingPlan {
   id: "monthly" | "annual" | "lifetime";
   name: string;
@@ -187,7 +235,7 @@ export default function Home() {
           <div className="flex gap-7 items-center text-xs font-bold tracking-widest uppercase">
             <a href="#features" className="hidden md:block text-slate-400 hover:text-white transition-colors">Technology</a>
             <a href="#pricing" className="hidden md:block text-slate-400 hover:text-white transition-colors">Pricing</a>
-            <a href="#support" className="hidden sm:block text-slate-400 hover:text-white transition-colors">Support Desk</a>
+            <a href="#support" className="hidden sm:block text-slate-400 hover:text-white transition-colors">Support & Community</a>
             <button 
               onClick={() => setShowLogin(true)} 
               className="px-6 py-2.5 border border-[#D4AF37]/60 text-[#FFD700] rounded-full hover:bg-[#D4AF37]/15 hover:border-[#D4AF37] hover:shadow-[0_0_20px_rgba(212,175,55,0.25)] transition-all font-semibold"
@@ -225,18 +273,21 @@ export default function Home() {
             <ChevronRight className="w-4 h-4" />
           </a>
           <a 
-            href="https://wa.me/94773535384?text=Hello%20PTM%20Prime!%20I%20am%20interested%20in%20the%20Trading%20Bot." 
+            href="https://wa.me/94702392762?text=Hello%20PTM%20Prime!%20I%20am%20interested%20in%20the%20Trading%20Bot." 
             target="_blank" 
-            className="border border-white/15 bg-white/[0.04] text-white hover:border-[#D4AF37]/60 hover:text-[#FFD700] font-bold py-4 px-8 rounded-full flex items-center gap-2.5 transition-all uppercase tracking-widest text-xs backdrop-blur-md"
+            rel="noopener noreferrer"
+            className="border border-emerald-500/30 bg-emerald-500/[0.08] text-white hover:border-emerald-400 hover:text-emerald-300 font-bold py-4 px-8 rounded-full flex items-center gap-2.5 transition-all uppercase tracking-widest text-xs backdrop-blur-md hover:shadow-[0_0_20px_rgba(37,211,102,0.25)]"
           >
-            <Phone className="w-3.5 h-3.5 text-emerald-400" />
+            <WhatsAppIcon className="w-4 h-4 text-emerald-400" />
             <span>WhatsApp Operations</span>
           </a>
           <a 
-            href="https://t.me/PTM_PRIME_bot" 
+            href="https://t.me/PTMPrimeOfficial" 
             target="_blank" 
-            className="border border-white/10 text-slate-400 hover:text-white font-bold py-4 px-8 rounded-full flex items-center gap-2 transition-all uppercase tracking-widest text-xs"
+            rel="noopener noreferrer"
+            className="border border-sky-500/30 bg-sky-500/[0.08] text-slate-300 hover:text-white hover:border-sky-400 font-bold py-4 px-8 rounded-full flex items-center gap-2.5 transition-all uppercase tracking-widest text-xs backdrop-blur-md hover:shadow-[0_0_20px_rgba(56,189,248,0.25)]"
           >
+            <TelegramIcon className="w-4 h-4 text-sky-400" />
             <span>Telegram Channel</span>
           </a>
         </div>
@@ -490,80 +541,380 @@ export default function Home() {
       </section>
 
       {/* Support & Concierge Desk Section */}
-      <section id="support" className="py-20 px-6 max-w-7xl mx-auto relative z-10 border-t border-white/[0.08]">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl sm:text-4xl font-serif font-bold text-white mb-3">Institutional Operations Desk</h2>
-          <p className="text-slate-400 text-sm max-w-xl mx-auto font-light">
-            Connect directly with system engineers and client specialists for terminal calibration, activation, and support.
+      <section id="support" className="py-24 px-6 max-w-7xl mx-auto relative z-10 border-t border-white/[0.08]">
+        <div className="text-center mb-14">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full border border-[#D4AF37]/30 bg-[#D4AF37]/[0.05] text-[#D4AF37] text-[10px] font-mono font-bold uppercase tracking-[0.2em] mb-4">
+            <span className="w-2 h-2 rounded-full bg-[#D4AF37] animate-pulse" />
+            DIRECT SUPPORT & GLOBAL NETWORK
+          </div>
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-serif font-bold text-white mb-3">Institutional Operations Desk</h2>
+          <p className="text-slate-400 text-sm max-w-2xl mx-auto font-light leading-relaxed">
+            Direct priority access to system engineers, dedicated 1-on-1 account calibration, official trading communities, and educational media channels.
           </p>
         </div>
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {/* WhatsApp Channel */}
-          <a 
-            href="https://wa.me/94773535384?text=Hello%20PTM%20Prime!%20I%20need%20assistance%20with%20terminal%20activation." 
-            target="_blank" 
-            className="p-6 rounded-2xl bg-[#0C0C12] border border-white/[0.08] hover:border-emerald-500/50 transition-all group flex flex-col items-center text-center shadow-lg hover:-translate-y-1"
-          >
-            <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-              <Phone className="w-6 h-6" />
-            </div>
-            <h4 className="text-white font-bold text-sm mb-1">WhatsApp Operations Desk</h4>
-            <p className="text-emerald-400 font-mono text-xs font-bold mb-2">+94 77 353 5384</p>
-            <span className="text-[11px] text-slate-500">Instant Priority Response (24/7)</span>
-          </a>
+        {/* Priority 1-on-1 Support Desks */}
+        <div className="mb-14">
+          <div className="flex items-center gap-2 mb-6">
+            <Shield className="w-4 h-4 text-[#D4AF37]" />
+            <h3 className="text-xs font-mono font-bold uppercase tracking-widest text-[#C5A059]">Direct Support & License Desks</h3>
+          </div>
+          
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            {/* WhatsApp Operations Desk */}
+            <a 
+              href="https://wa.me/94702392762?text=Hello%20PTM%20Prime!%20I%20need%20assistance%20with%20terminal%20activation." 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="p-6 rounded-2xl bg-[#0C0C12] border border-white/[0.08] hover:border-emerald-500/50 transition-all group flex flex-col justify-between shadow-lg hover:-translate-y-1 relative overflow-hidden"
+            >
+              <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-500/5 rounded-full blur-xl pointer-events-none group-hover:bg-emerald-500/10 transition-colors" />
+              <div>
+                <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                  <WhatsAppIcon className="w-6 h-6" />
+                </div>
+                <div className="text-[10px] text-emerald-400 uppercase tracking-widest font-mono font-bold mb-1">Official Direct Line</div>
+                <h4 className="text-white font-bold text-base mb-1">WhatsApp Operations Desk</h4>
+                <p className="text-emerald-400 font-mono text-sm font-bold mb-2">+94 70 239 2762</p>
+                <p className="text-[11px] text-slate-400 leading-relaxed font-light">Instant Priority Response (24/7) • Direct Payment & Terminal Calibration</p>
+              </div>
+              <div className="mt-5 pt-3 border-t border-white/[0.06] flex items-center justify-between text-xs font-bold text-emerald-400 uppercase tracking-wider font-mono">
+                <span>Message Now</span>
+                <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+              </div>
+            </a>
 
-          {/* Telegram Channel */}
-          <a 
-            href="https://t.me/PTM_PRIME_bot" 
-            target="_blank" 
-            className="p-6 rounded-2xl bg-[#0C0C12] border border-white/[0.08] hover:border-blue-500/50 transition-all group flex flex-col items-center text-center shadow-lg hover:-translate-y-1"
-          >
-            <div className="w-12 h-12 rounded-2xl bg-blue-500/10 text-blue-400 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-              <MessageCircle className="w-6 h-6" />
-            </div>
-            <h4 className="text-white font-bold text-sm mb-1">Telegram VIP Bot & Feed</h4>
-            <p className="text-blue-400 font-mono text-xs font-bold mb-2">@PTM_PRIME_bot</p>
-            <span className="text-[11px] text-slate-500">Live Trade Sync & Mobile Controls</span>
-          </a>
+            {/* Telegram 1-on-1 Support Desk */}
+            <a 
+              href="https://t.me/PTMPrime" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="p-6 rounded-2xl bg-[#0C0C12] border border-white/[0.08] hover:border-sky-500/50 transition-all group flex flex-col justify-between shadow-lg hover:-translate-y-1 relative overflow-hidden"
+            >
+              <div className="absolute top-0 right-0 w-24 h-24 bg-sky-500/5 rounded-full blur-xl pointer-events-none group-hover:bg-sky-500/10 transition-colors" />
+              <div>
+                <div className="w-12 h-12 rounded-2xl bg-sky-500/10 text-sky-400 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                  <TelegramIcon className="w-6 h-6" />
+                </div>
+                <div className="text-[10px] text-sky-400 uppercase tracking-widest font-mono font-bold mb-1">1-on-1 Support Account</div>
+                <h4 className="text-white font-bold text-base mb-1">Telegram Official Support</h4>
+                <p className="text-sky-400 font-mono text-sm font-bold mb-2">@PTMPrime</p>
+                <p className="text-[11px] text-slate-400 leading-relaxed font-light">Personal VIP Concierge • Technical Calibration & Account Onboarding</p>
+              </div>
+              <div className="mt-5 pt-3 border-t border-white/[0.06] flex items-center justify-between text-xs font-bold text-sky-400 uppercase tracking-wider font-mono">
+                <span>Chat @PTMPrime</span>
+                <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+              </div>
+            </a>
 
-          {/* Email Support */}
-          <a 
-            href="mailto:info.ptmprime@gmail.com" 
-            className="p-6 rounded-2xl bg-[#0C0C12] border border-white/[0.08] hover:border-[#D4AF37]/50 transition-all group flex flex-col items-center text-center shadow-lg hover:-translate-y-1"
-          >
-            <div className="w-12 h-12 rounded-2xl bg-[#D4AF37]/10 text-[#FFD700] flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-              <Mail className="w-6 h-6" />
-            </div>
-            <h4 className="text-white font-bold text-sm mb-1">Client Relations Desk</h4>
-            <p className="text-[#FFD700] font-mono text-xs font-bold mb-2">info.ptmprime@gmail.com</p>
-            <span className="text-[11px] text-slate-500">Corporate & Institutional Inquiries</span>
-          </a>
+            {/* In-Site Live Concierge */}
+            <button 
+              onClick={() => handleOpenLiveChatForPlan(plans[1])}
+              className="p-6 rounded-2xl bg-[#0C0C12] border border-white/[0.08] hover:border-[#D4AF37]/50 transition-all group flex flex-col justify-between text-left shadow-lg hover:-translate-y-1 relative overflow-hidden cursor-pointer"
+            >
+              <div className="absolute top-0 right-0 w-24 h-24 bg-[#D4AF37]/5 rounded-full blur-xl pointer-events-none group-hover:bg-[#D4AF37]/10 transition-colors" />
+              <div>
+                <div className="w-12 h-12 rounded-2xl bg-[#D4AF37]/10 text-[#FFD700] flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                  <MessageCircle className="w-6 h-6" />
+                </div>
+                <div className="text-[10px] text-[#FFD700] uppercase tracking-widest font-mono font-bold mb-1">Zero Setup Needed</div>
+                <h4 className="text-white font-bold text-base mb-1">Live Chat Concierge</h4>
+                <p className="text-[#FFD700] font-mono text-sm font-bold mb-2">Instant Ticket Support</p>
+                <p className="text-[11px] text-slate-400 leading-relaxed font-light">Interactive In-App Specialist Assistance with Real-Time Response</p>
+              </div>
+              <div className="mt-5 pt-3 border-t border-white/[0.06] flex items-center justify-between text-xs font-bold text-[#FFD700] uppercase tracking-wider font-mono">
+                <span>Open Ticket</span>
+                <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+              </div>
+            </button>
 
-          {/* In-Site Live Chat */}
-          <button 
-            onClick={() => handleOpenLiveChatForPlan(plans[1])}
-            className="p-6 rounded-2xl bg-[#0C0C12] border border-white/[0.08] hover:border-yellow-500/50 transition-all group flex flex-col items-center text-center shadow-lg hover:-translate-y-1 cursor-pointer"
-          >
-            <div className="w-12 h-12 rounded-2xl bg-yellow-500/10 text-yellow-400 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-              <MessageCircle className="w-6 h-6" />
-            </div>
-            <h4 className="text-white font-bold text-sm mb-1">Live Chat Concierge</h4>
-            <p className="text-yellow-400 font-mono text-xs font-bold mb-2">Instant Ticket Support</p>
-            <span className="text-[11px] text-slate-500">Direct In-App Specialist Assistance</span>
-          </button>
+            {/* Client Relations Desk (Email) */}
+            <a 
+              href="mailto:info.ptmprime@gmail.com" 
+              className="p-6 rounded-2xl bg-[#0C0C12] border border-white/[0.08] hover:border-amber-500/50 transition-all group flex flex-col justify-between shadow-lg hover:-translate-y-1 relative overflow-hidden"
+            >
+              <div className="absolute top-0 right-0 w-24 h-24 bg-amber-500/5 rounded-full blur-xl pointer-events-none group-hover:bg-amber-500/10 transition-colors" />
+              <div>
+                <div className="w-12 h-12 rounded-2xl bg-amber-500/10 text-amber-400 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                  <Mail className="w-6 h-6" />
+                </div>
+                <div className="text-[10px] text-amber-400 uppercase tracking-widest font-mono font-bold mb-1">Official Inquiry Desk</div>
+                <h4 className="text-white font-bold text-base mb-1">Client Relations Desk</h4>
+                <p className="text-amber-400 font-mono text-xs font-bold mb-2 truncate">info.ptmprime@gmail.com</p>
+                <p className="text-[11px] text-slate-400 leading-relaxed font-light">Corporate Licensing, Institutional Wire Transfers & Invoicing</p>
+              </div>
+              <div className="mt-5 pt-3 border-t border-white/[0.06] flex items-center justify-between text-xs font-bold text-amber-400 uppercase tracking-wider font-mono">
+                <span>Send Email</span>
+                <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+              </div>
+            </a>
+          </div>
+        </div>
+
+        {/* Global Community & Media Channels Grid */}
+        <div>
+          <div className="flex items-center gap-2 mb-6">
+            <Globe className="w-4 h-4 text-[#D4AF37]" />
+            <h3 className="text-xs font-mono font-bold uppercase tracking-widest text-[#C5A059]">Official Communities & Media Network</h3>
+          </div>
+
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {/* Telegram Channel */}
+            <a 
+              href="https://t.me/PTMPrimeOfficial" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="p-6 rounded-2xl bg-[#0C0C12] border border-white/[0.08] hover:border-sky-500/50 transition-all group flex flex-col justify-between shadow-lg hover:-translate-y-1"
+            >
+              <div>
+                <div className="flex items-center justify-between mb-4">
+                  <div className="w-11 h-11 rounded-xl bg-sky-500/10 text-sky-400 flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <TelegramIcon className="w-5 h-5" />
+                  </div>
+                  <span className="text-[10px] uppercase font-mono font-bold px-2.5 py-1 rounded-full bg-sky-500/10 text-sky-400 border border-sky-500/20">
+                    Live Broadcast
+                  </span>
+                </div>
+                <h4 className="text-white font-bold text-base mb-1">Official Telegram Channel</h4>
+                <p className="text-sky-400 font-mono text-xs font-semibold mb-2">@PTMPrimeOfficial</p>
+                <p className="text-slate-400 text-xs leading-relaxed font-light">
+                  Live algorithmic signal alerts, synthetic market regime updates, and official system announcements.
+                </p>
+              </div>
+              <div className="mt-5 pt-3 border-t border-white/[0.06] flex items-center justify-between text-xs font-bold text-sky-400 uppercase tracking-wider font-mono">
+                <span>Join Channel</span>
+                <ExternalLink className="w-3.5 h-3.5" />
+              </div>
+            </a>
+
+            {/* WhatsApp Community */}
+            <a 
+              href="https://chat.whatsapp.com/IvO1ICer7OuFargtiS9KmL" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="p-6 rounded-2xl bg-[#0C0C12] border border-white/[0.08] hover:border-emerald-500/50 transition-all group flex flex-col justify-between shadow-lg hover:-translate-y-1"
+            >
+              <div>
+                <div className="flex items-center justify-between mb-4">
+                  <div className="w-11 h-11 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <WhatsAppIcon className="w-5 h-5" />
+                  </div>
+                  <span className="text-[10px] uppercase font-mono font-bold px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                    Traders Group
+                  </span>
+                </div>
+                <h4 className="text-white font-bold text-base mb-1">WhatsApp Traders Community</h4>
+                <p className="text-emerald-400 font-mono text-xs font-semibold mb-2">PTM Prime Community</p>
+                <p className="text-slate-400 text-xs leading-relaxed font-light">
+                  Engage directly with active Deriv quantitative traders, exchange strategy parameters, and review win logs.
+                </p>
+              </div>
+              <div className="mt-5 pt-3 border-t border-white/[0.06] flex items-center justify-between text-xs font-bold text-emerald-400 uppercase tracking-wider font-mono">
+                <span>Join Community</span>
+                <ExternalLink className="w-3.5 h-3.5" />
+              </div>
+            </a>
+
+            {/* YouTube */}
+            <a 
+              href="https://www.youtube.com/@PTMPrime" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="p-6 rounded-2xl bg-[#0C0C12] border border-white/[0.08] hover:border-red-500/50 transition-all group flex flex-col justify-between shadow-lg hover:-translate-y-1"
+            >
+              <div>
+                <div className="flex items-center justify-between mb-4">
+                  <div className="w-11 h-11 rounded-xl bg-red-500/10 text-red-500 flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <YouTubeIcon className="w-5 h-5" />
+                  </div>
+                  <span className="text-[10px] uppercase font-mono font-bold px-2.5 py-1 rounded-full bg-red-500/10 text-red-400 border border-red-500/20">
+                    Video Tutorials
+                  </span>
+                </div>
+                <h4 className="text-white font-bold text-base mb-1">YouTube Official Channel</h4>
+                <p className="text-red-400 font-mono text-xs font-semibold mb-2">@PTMPrime</p>
+                <p className="text-slate-400 text-xs leading-relaxed font-light">
+                  Complete terminal setup guides, live automated bot trading proofs, and capital vault walkthroughs.
+                </p>
+              </div>
+              <div className="mt-5 pt-3 border-t border-white/[0.06] flex items-center justify-between text-xs font-bold text-red-400 uppercase tracking-wider font-mono">
+                <span>Subscribe on YouTube</span>
+                <ExternalLink className="w-3.5 h-3.5" />
+              </div>
+            </a>
+
+            {/* Facebook */}
+            <a 
+              href="https://www.facebook.com/PTMPrimeTrading" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="p-6 rounded-2xl bg-[#0C0C12] border border-white/[0.08] hover:border-blue-600/50 transition-all group flex flex-col justify-between shadow-lg hover:-translate-y-1"
+            >
+              <div>
+                <div className="flex items-center justify-between mb-4">
+                  <div className="w-11 h-11 rounded-xl bg-blue-600/10 text-blue-500 flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <FacebookIcon className="w-5 h-5" />
+                  </div>
+                  <span className="text-[10px] uppercase font-mono font-bold px-2.5 py-1 rounded-full bg-blue-600/10 text-blue-400 border border-blue-600/20">
+                    Official Page
+                  </span>
+                </div>
+                <h4 className="text-white font-bold text-base mb-1">Facebook Official Page</h4>
+                <p className="text-blue-400 font-mono text-xs font-semibold mb-2">PTM Prime Trading</p>
+                <p className="text-slate-400 text-xs leading-relaxed font-light">
+                  Follow platform release milestones, trader spotlights, institutional news, and scheduled event updates.
+                </p>
+              </div>
+              <div className="mt-5 pt-3 border-t border-white/[0.06] flex items-center justify-between text-xs font-bold text-blue-400 uppercase tracking-wider font-mono">
+                <span>Follow Page</span>
+                <ExternalLink className="w-3.5 h-3.5" />
+              </div>
+            </a>
+
+            {/* Instagram */}
+            <a 
+              href="https://www.instagram.com/ptmprime" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="p-6 rounded-2xl bg-[#0C0C12] border border-white/[0.08] hover:border-pink-500/50 transition-all group flex flex-col justify-between shadow-lg hover:-translate-y-1"
+            >
+              <div>
+                <div className="flex items-center justify-between mb-4">
+                  <div className="w-11 h-11 rounded-xl bg-pink-500/10 text-pink-400 flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <InstagramIcon className="w-5 h-5" />
+                  </div>
+                  <span className="text-[10px] uppercase font-mono font-bold px-2.5 py-1 rounded-full bg-pink-500/10 text-pink-400 border border-pink-500/20">
+                    Daily Insights
+                  </span>
+                </div>
+                <h4 className="text-white font-bold text-base mb-1">Instagram Official Profile</h4>
+                <p className="text-pink-400 font-mono text-xs font-semibold mb-2">@ptmprime</p>
+                <p className="text-slate-400 text-xs leading-relaxed font-light">
+                  Daily visual profit recaps, strategy win streaks, and behind-the-scenes quantitative system updates.
+                </p>
+              </div>
+              <div className="mt-5 pt-3 border-t border-white/[0.06] flex items-center justify-between text-xs font-bold text-pink-400 uppercase tracking-wider font-mono">
+                <span>Follow on Instagram</span>
+                <ExternalLink className="w-3.5 h-3.5" />
+              </div>
+            </a>
+
+            {/* TikTok */}
+            <a 
+              href="https://www.tiktok.com/@ptm_prime" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="p-6 rounded-2xl bg-[#0C0C12] border border-white/[0.08] hover:border-teal-400/50 transition-all group flex flex-col justify-between shadow-lg hover:-translate-y-1"
+            >
+              <div>
+                <div className="flex items-center justify-between mb-4">
+                  <div className="w-11 h-11 rounded-xl bg-teal-500/10 text-teal-300 flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <TikTokIcon className="w-5 h-5" />
+                  </div>
+                  <span className="text-[10px] uppercase font-mono font-bold px-2.5 py-1 rounded-full bg-teal-500/10 text-teal-300 border border-teal-500/20">
+                    Quant Shorts
+                  </span>
+                </div>
+                <h4 className="text-white font-bold text-base mb-1">TikTok Official Channel</h4>
+                <p className="text-teal-300 font-mono text-xs font-semibold mb-2">@ptm_prime</p>
+                <p className="text-slate-400 text-xs leading-relaxed font-light">
+                  Short-form trading breakdowns, algorithmic tips, volatility spikes, and quick bot logic tutorials.
+                </p>
+              </div>
+              <div className="mt-5 pt-3 border-t border-white/[0.06] flex items-center justify-between text-xs font-bold text-teal-300 uppercase tracking-wider font-mono">
+                <span>Watch on TikTok</span>
+                <ExternalLink className="w-3.5 h-3.5" />
+              </div>
+            </a>
+          </div>
         </div>
       </section>
 
       {/* Footer Area with Verified Page Views Counter Badge */}
-      <footer className="border-t border-white/[0.08] bg-[#050508] py-14 px-6 text-center relative z-10">
-        <div className="max-w-4xl mx-auto flex flex-col items-center">
+      <footer className="border-t border-white/[0.08] bg-[#050508] py-16 px-6 text-center relative z-10">
+        <div className="max-w-5xl mx-auto flex flex-col items-center">
           <div className="w-10 h-10 mb-3 drop-shadow-[0_0_10px_rgba(212,175,55,0.3)]"><Logo/></div>
           <span className="text-base font-serif font-bold text-white tracking-[0.2em] uppercase mb-1">PTM PRIME QUANTUM SYSTEMS</span>
-          <p className="text-slate-400 text-xs uppercase tracking-widest font-mono font-semibold mb-4">Autonomous Algorithmic Trading Systems</p>
+          <p className="text-slate-400 text-xs uppercase tracking-widest font-mono font-semibold mb-6">Autonomous Algorithmic Trading Systems</p>
           
+          {/* Social Media & Community Link Badges */}
+          <div className="flex flex-wrap items-center justify-center gap-2.5 mb-8 max-w-3xl">
+            <a 
+              href="https://wa.me/94702392762" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white/[0.04] border border-white/10 hover:border-emerald-500/60 hover:text-emerald-400 text-slate-300 text-xs transition-all font-mono"
+            >
+              <WhatsAppIcon className="w-3.5 h-3.5 text-emerald-400" />
+              <span>WhatsApp Desk</span>
+            </a>
+            <a 
+              href="https://chat.whatsapp.com/IvO1ICer7OuFargtiS9KmL" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white/[0.04] border border-white/10 hover:border-emerald-500/60 hover:text-emerald-400 text-slate-300 text-xs transition-all font-mono"
+            >
+              <WhatsAppIcon className="w-3.5 h-3.5 text-emerald-400" />
+              <span>WhatsApp Community</span>
+            </a>
+            <a 
+              href="https://t.me/PTMPrimeOfficial" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white/[0.04] border border-white/10 hover:border-sky-500/60 hover:text-sky-400 text-slate-300 text-xs transition-all font-mono"
+            >
+              <TelegramIcon className="w-3.5 h-3.5 text-sky-400" />
+              <span>Telegram Channel</span>
+            </a>
+            <a 
+              href="https://t.me/PTMPrime" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white/[0.04] border border-white/10 hover:border-sky-500/60 hover:text-sky-400 text-slate-300 text-xs transition-all font-mono"
+            >
+              <TelegramIcon className="w-3.5 h-3.5 text-sky-400" />
+              <span>Telegram Support (@PTMPrime)</span>
+            </a>
+            <a 
+              href="https://www.youtube.com/@PTMPrime" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white/[0.04] border border-white/10 hover:border-red-500/60 hover:text-red-400 text-slate-300 text-xs transition-all font-mono"
+            >
+              <YouTubeIcon className="w-3.5 h-3.5 text-red-400" />
+              <span>YouTube</span>
+            </a>
+            <a 
+              href="https://www.facebook.com/PTMPrimeTrading" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white/[0.04] border border-white/10 hover:border-blue-500/60 hover:text-blue-400 text-slate-300 text-xs transition-all font-mono"
+            >
+              <FacebookIcon className="w-3.5 h-3.5 text-blue-400" />
+              <span>Facebook</span>
+            </a>
+            <a 
+              href="https://www.instagram.com/ptmprime" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white/[0.04] border border-white/10 hover:border-pink-500/60 hover:text-pink-400 text-slate-300 text-xs transition-all font-mono"
+            >
+              <InstagramIcon className="w-3.5 h-3.5 text-pink-400" />
+              <span>Instagram</span>
+            </a>
+            <a 
+              href="https://www.tiktok.com/@ptm_prime" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white/[0.04] border border-white/10 hover:border-teal-400/60 hover:text-teal-300 text-slate-300 text-xs transition-all font-mono"
+            >
+              <TikTokIcon className="w-3.5 h-3.5 text-teal-300" />
+              <span>TikTok</span>
+            </a>
+          </div>
+
           {/* Verified Hits.sh Counter Badge */}
-          <div className="my-5 flex flex-col sm:flex-row items-center justify-center gap-3">
+          <div className="mb-6 flex flex-col sm:flex-row items-center justify-center gap-3">
             <div className="inline-flex items-center gap-2.5 px-4 py-2 bg-white/[0.03] border border-white/10 rounded-full text-xs text-slate-300 font-mono shadow-inner">
               <Eye className="w-3.5 h-3.5 text-[#D4AF37]" />
               <span className="text-slate-400">Total Platform Traffic:</span>
@@ -575,7 +926,7 @@ export default function Home() {
             </div>
           </div>
 
-          <p className="text-slate-500 text-[11px] max-w-2xl mx-auto leading-relaxed mt-2 font-light">
+          <p className="text-slate-500 text-[11px] max-w-2xl mx-auto leading-relaxed font-light">
             Trading synthetic volatility indices on Deriv carries capital risk. Algorithmic execution and quantitative models do not guarantee future returns. Capital preservation relies on strict adherence to the Masaniello vault protocol.
           </p>
           <div className="text-slate-600 text-[10px] uppercase tracking-widest font-mono mt-6">
@@ -628,33 +979,46 @@ export default function Home() {
             <div className="flex flex-col gap-3">
               {/* WhatsApp Instant Activation */}
               <a 
-                href={`https://wa.me/94773535384?text=${encodeURIComponent(
+                href={`https://wa.me/94702392762?text=${encodeURIComponent(
                   `Hello PTM Prime Team. I would like to activate the ${selectedPlanForModal.name} ($${selectedPlanForModal.priceUSD}). Please provide payment settlement details.`
                 )}`}
                 target="_blank"
+                rel="noopener noreferrer"
                 className="w-full py-4 px-6 rounded-xl bg-[#25D366] hover:bg-[#20ba59] text-black font-extrabold uppercase tracking-wider text-xs flex items-center justify-center gap-3 transition-all shadow-[0_0_20px_rgba(37,211,102,0.4)] cursor-pointer"
               >
-                <Phone className="w-4 h-4 fill-black" />
-                <span>Instant Activation via WhatsApp Desk</span>
+                <WhatsAppIcon className="w-4 h-4 fill-black" />
+                <span>Instant Activation via WhatsApp (+94 70 239 2762)</span>
+              </a>
+
+              {/* Direct Telegram Support Desk Activation */}
+              <a 
+                href="https://t.me/PTMPrime" 
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full py-3.5 px-6 rounded-xl bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/40 text-blue-300 font-bold uppercase tracking-wider text-xs flex items-center justify-center gap-3 transition-all cursor-pointer"
+              >
+                <TelegramIcon className="w-4 h-4" />
+                <span>Direct Support Telegram Desk (@PTMPrime)</span>
               </a>
 
               {/* In-Site Live Chat Activation */}
               <button
                 onClick={() => handleOpenLiveChatForPlan(selectedPlanForModal)}
-                className="w-full py-4 px-6 rounded-xl bg-gradient-to-r from-[#D4AF37] to-[#FFD700] text-black font-extrabold uppercase tracking-wider text-xs flex items-center justify-center gap-3 transition-all hover:shadow-[0_0_25px_rgba(212,175,55,0.5)] cursor-pointer"
+                className="w-full py-3.5 px-6 rounded-xl bg-gradient-to-r from-[#D4AF37] to-[#FFD700] text-black font-extrabold uppercase tracking-wider text-xs flex items-center justify-center gap-3 transition-all hover:shadow-[0_0_25px_rgba(212,175,55,0.5)] cursor-pointer"
               >
                 <MessageCircle className="w-4 h-4" />
                 <span>Open In-Site Live Chat Concierge</span>
               </button>
 
-              {/* Telegram VIP Channel Activation */}
+              {/* Telegram Official Channel */}
               <a 
-                href="https://t.me/PTM_PRIME_bot" 
+                href="https://t.me/PTMPrimeOfficial" 
                 target="_blank"
-                className="w-full py-3.5 px-6 rounded-xl bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/40 text-blue-300 font-bold uppercase tracking-wider text-xs flex items-center justify-center gap-3 transition-all cursor-pointer"
+                rel="noopener noreferrer"
+                className="w-full py-2.5 px-4 rounded-xl bg-white/[0.03] hover:bg-white/[0.06] border border-white/10 text-slate-400 hover:text-white font-mono text-[11px] flex items-center justify-center gap-2 transition-all cursor-pointer text-center"
               >
-                <ExternalLink className="w-4 h-4" />
-                <span>Connect via Telegram VIP Desk</span>
+                <span>Follow Official Signals & Broadcasts (@PTMPrimeOfficial)</span>
+                <ExternalLink className="w-3 h-3 text-sky-400" />
               </a>
             </div>
 
