@@ -3,7 +3,7 @@ import { API_URL, WS_URL } from '../config';
 
 
 import { useState, useEffect } from "react";
-import { Activity, ShieldAlert, Target, TrendingUp, Wallet, Power, Settings, LogOut, ChevronDown, ChevronUp, CheckCircle2, History, Banknote, Cpu, Flame, Zap, RefreshCw, Trash2, Sliders, Crown, Sparkles, Bot } from "lucide-react";
+import { Activity, ShieldAlert, Target, TrendingUp, Wallet, Power, Settings, LogOut, ChevronDown, ChevronUp, CheckCircle2, History, Banknote, Cpu, Flame, Zap, RefreshCw, Trash2, Sliders, Crown, Sparkles, Bot, Lock, Clock } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { Logo } from "@/components/Logo";
@@ -132,6 +132,7 @@ export default function Dashboard() {
   const [matrixSortBy, setMatrixSortBy] = useState<'ai_score' | 'win_rate' | 'loss_streak' | 'trades' | 'profit'>('ai_score');
   const [isFetchingMatrix, setIsFetchingMatrix] = useState(false);
   const [evaluationTicks, setEvaluationTicks] = useState<number>(0);
+  const [matrixTimeframe, setMatrixTimeframe] = useState<'all' | '5m' | '15m' | '1h'>('all');
   const [isSettingTicks, setIsSettingTicks] = useState(false);
   const [aiAutoPilot, setAiAutoPilot] = useState<boolean>(false);
   const [isConsultingAi, setIsConsultingAi] = useState<boolean>(false);
@@ -204,11 +205,12 @@ export default function Dashboard() {
     }
   };
 
-  const fetchMatrixData = async (targetTick?: number) => {
+  const fetchMatrixData = async (targetTick?: number, targetTimeframe?: string) => {
     try {
       setIsFetchingMatrix(true);
       const t = targetTick !== undefined ? targetTick : evaluationTicks;
-      const res = await fetch(`${API_URL}/api/v1/analytics/matrix?tick=${t}`, {
+      const tf = targetTimeframe !== undefined ? targetTimeframe : matrixTimeframe;
+      const res = await fetch(`${API_URL}/api/v1/analytics/matrix?tick=${t}&timeframe=${tf}`, {
         headers: { "ngrok-skip-browser-warning": "true" }
       });
       if (res.ok) {
@@ -223,7 +225,7 @@ export default function Dashboard() {
 
   const handleSelectTick = (ticks: number) => {
     setEvaluationTicks(ticks);
-    fetchMatrixData(ticks);
+    fetchMatrixData(ticks, matrixTimeframe);
     fetch(`${API_URL}/api/v1/analytics/set-ticks`, {
       method: "POST",
       headers: {
@@ -238,11 +240,11 @@ export default function Dashboard() {
 
   useEffect(() => {
     if (activeTab === 'analytics') {
-      fetchMatrixData(evaluationTicks);
-      const interval = setInterval(() => fetchMatrixData(evaluationTicks), 4000);
+      fetchMatrixData(evaluationTicks, matrixTimeframe);
+      const interval = setInterval(() => fetchMatrixData(evaluationTicks, matrixTimeframe), 4000);
       return () => clearInterval(interval);
     }
-  }, [activeTab, evaluationTicks]);
+  }, [activeTab, evaluationTicks, matrixTimeframe]);
 
   const handleToggleAiAutoPilot = async (enabled: boolean) => {
     try {
@@ -258,8 +260,15 @@ export default function Dashboard() {
         body: JSON.stringify({ enabled })
       });
       if (res.ok) {
-        showToast(enabled ? "🤖 AI Autonomous Trading Engaged!" : "AI Autonomous Trading Disabled (Manual Mode)", "success");
-        playTTS(enabled ? "A I Autonomous Trading activated. Bot will auto-deploy the top live edge." : "A I Autonomous mode disabled. Manual mode active.");
+        const resData = await res.json();
+        if (enabled && resData.edge) {
+          if (resData.edge.strategy) setStrategyCore(resData.edge.strategy);
+          if (resData.edge.symbol) setActiveSymbol(resData.edge.symbol);
+          if (resData.edge.ticks) setTickDuration(resData.edge.ticks);
+          if (resData.edge.martingale) setMaxMartingaleSteps(resData.edge.martingale);
+        }
+        showToast(enabled ? "🤖 AI Autonomous Trading Engaged! Controls locked." : "AI Autonomous Trading Disabled (Manual Mode)", "success");
+        playTTS(enabled ? "A I Autonomous Trading activated. Bot is now auto-executing the top live edge. Manual controls locked." : "A I Autonomous mode disabled. Manual mode active.");
       } else {
         setAiAutoPilot(!enabled);
         showToast("Failed to update AI Auto-Pilot status", "error");
@@ -364,7 +373,7 @@ export default function Dashboard() {
     strategy_name: aiAnalysis.best_strategy_name || bestSetup?.strategy_name,
     symbol: aiAnalysis.best_symbol,
     symbol_name: aiAnalysis.best_symbol_name || bestSetup?.symbol_name,
-    best_tick: aiAnalysis.optimal_ticks || bestSetup?.best_tick || (evaluationTicks === 0 ? 5 : evaluationTicks),
+    best_tick: aiAnalysis.optimal_ticks || bestSetup?.tick || bestSetup?.best_tick || (evaluationTicks === 0 ? 5 : evaluationTicks),
     recommended_martingale: aiAnalysis.safe_martingale_steps || bestSetup?.recommended_martingale || 2,
     ai_score: aiAnalysis.ai_confidence_score || bestSetup?.ai_score || 75.0,
     market_regime: aiAnalysis.market_regime || "Statistical Edge",
@@ -373,6 +382,10 @@ export default function Dashboard() {
     win_rate: bestSetup?.win_rate || 0,
     wins: bestSetup?.wins || 0,
     losses: bestSetup?.losses || 0,
+    loss_streaks_formatted: bestSetup?.loss_streaks_formatted || "1L(1x)",
+    win_streaks_formatted: bestSetup?.win_streaks_formatted || "1W(1x)",
+    loss_streak_dist: bestSetup?.loss_streak_dist || [],
+    win_streak_dist: bestSetup?.win_streak_dist || [],
     max_loss_streak: bestSetup?.max_loss_streak || 0,
     best_tick_win_rate: bestSetup?.best_tick_win_rate || bestSetup?.win_rate || 0,
     total_trades: bestSetup?.total_trades || 0
@@ -606,6 +619,16 @@ export default function Dashboard() {
 
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
+      if (data.type === 'ai_autopilot_sync') {
+        if (data.strategy_core) setStrategyCore(data.strategy_core);
+        if (data.active_symbol) setActiveSymbol(data.active_symbol);
+        if (data.tick_duration) setTickDuration(data.tick_duration);
+        if (data.max_martingale_steps) setMaxMartingaleSteps(data.max_martingale_steps);
+        showToast(data.message || `AI Auto-Pilot adapted edge to ${data.strategy_name || data.strategy_core} on ${data.active_symbol}!`, "success");
+        if (voiceEnabled) {
+          playTTS(`AI Auto-Pilot adapted edge to ${data.strategy_name || data.strategy_core} at ${data.tick_duration} ticks.`);
+        }
+      }
       if (data.type === 'tick') {
         setLiveTick(data.value);
         if (data.balance !== undefined && data.balance !== 0) setAccountBalance(data.balance);
@@ -615,6 +638,9 @@ export default function Dashboard() {
         if (data.win_rate !== undefined) setWinRate(data.win_rate);
         if (data.current_stake !== undefined) setCurrentStake(data.current_stake);
         if (data.latest_signal !== undefined) setLatestSignal(data.latest_signal);
+        if (aiAutoPilot && data.strategy_core) setStrategyCore(data.strategy_core);
+        if (aiAutoPilot && data.active_symbol) setActiveSymbol(data.active_symbol);
+        if (aiAutoPilot && data.tick_duration) setTickDuration(data.tick_duration);
       }
       if (data.type === 'trade_result') {
         setPnl(p => p + data.profit);
@@ -976,9 +1002,43 @@ export default function Dashboard() {
                </div>
             </div>
             
-            <div className="bg-[rgba(18,18,22,0.85)] border border-[rgba(212,175,55,0.25)] rounded-3xl p-6 backdrop-blur-md shadow-[0_10px_30px_rgba(0,0,0,0.5)]">
-              <label className="block text-[#C5A059] text-[10px] uppercase tracking-widest font-bold mb-4">Active Strategy Core</label>
-              <select value={strategyCore} onChange={e => { setStrategyCore(e.target.value); playTTS("Strategy core selected."); }} className="w-full bg-[#0B0B0E] border border-[#D4AF37]/30 rounded-xl px-4 py-3 text-[#FFD700] outline-none focus:border-[#FFD700]">
+            {aiAutoPilot && (
+               <div className="p-4 rounded-2xl bg-emerald-950/40 border border-emerald-500/50 flex items-center gap-3 backdrop-blur-md animate-in fade-in">
+                  <div className="p-2.5 rounded-xl bg-emerald-500/20 text-emerald-400 shrink-0">
+                    <Lock className="w-5 h-5 animate-pulse" />
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-bold font-sans uppercase tracking-wider text-emerald-400 flex items-center gap-2">
+                       Manual Controls Locked by AI Autonomous Auto-Pilot
+                    </h4>
+                    <p className="text-[11px] text-slate-300 mt-0.5 leading-relaxed">
+                       The live trading engine is autonomously executing the AI Brain's top statistical edge. Strategy, Market, and Ticks dynamically adapt in real-time. Toggle Auto-Pilot OFF above if you wish to configure manually.
+                    </p>
+                  </div>
+               </div>
+            )}
+
+            <div className={`p-6 rounded-3xl backdrop-blur-md shadow-[0_10px_30px_rgba(0,0,0,0.5)] transition-all ${
+               aiAutoPilot ? 'bg-emerald-950/20 border border-emerald-500/30' : 'bg-[rgba(18,18,22,0.85)] border border-[rgba(212,175,55,0.25)]'
+            }`}>
+              <div className="flex items-center justify-between mb-4">
+                 <label className="text-[#C5A059] text-[10px] uppercase tracking-widest font-bold">Active Strategy Core</label>
+                 {aiAutoPilot && (
+                    <span className="px-2 py-0.5 rounded text-[8px] font-mono font-bold uppercase tracking-wider bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 flex items-center gap-1">
+                       <Lock className="w-2.5 h-2.5"/> AI Controlled
+                    </span>
+                 )}
+              </div>
+              <select 
+                disabled={aiAutoPilot}
+                value={strategyCore} 
+                onChange={e => { setStrategyCore(e.target.value); playTTS("Strategy core selected."); }} 
+                className={`w-full rounded-xl px-4 py-3 outline-none transition-all ${
+                   aiAutoPilot 
+                     ? 'bg-black/50 border border-emerald-500/30 text-emerald-400 font-mono text-xs cursor-not-allowed opacity-80' 
+                     : 'bg-[#0B0B0E] border border-[#D4AF37]/30 text-[#FFD700] focus:border-[#FFD700] cursor-pointer'
+                }`}
+              >
                 <option value="trend_momentum_rider">Directional Trend Surge (Multi-Harmonic Flow Alignment)</option>
                 <option value="apex_momentum">Apex Kinetic Impulse (High-Frequency Velocity Physics)</option>
                 <option value="rubber_band">Rubber-Band Elastic Scalp (High-Sigma Mean Reversion)</option>
@@ -987,12 +1047,32 @@ export default function Dashboard() {
                 <option value="macd_kinetic_impulse">Kinetic Momentum Pulse (Multi-Frequency Acceleration)</option>
                 <option value="heikin_ashi_pulse">Synthetic Micro-Wave Scalp (Noise-Filtered Wave Continuation)</option>
                 <option value="breakout_box_scalper">Dynamic Breakout Scalper (Liquidity Compression Expansion)</option>
+                <option value="contrarian_liquidity_fade">Contrarian Liquidity Fade (False Breakout Absorption)</option>
+                <option value="quantum_tick_velocity">Quantum Tick Velocity (High-Entropy Micro Burst)</option>
               </select>
             </div>
 
-            <div className="bg-[rgba(18,18,22,0.85)] border border-[rgba(212,175,55,0.25)] rounded-3xl p-6 backdrop-blur-md shadow-[0_10px_30px_rgba(0,0,0,0.5)] mt-4">
-              <label className="block text-[#C5A059] text-[10px] uppercase tracking-widest font-bold mb-4">Target Volatility Index (Market)</label>
-              <select value={activeSymbol} onChange={e => { setActiveSymbol(e.target.value); playTTS("Target market selected."); }} className="w-full bg-[#0B0B0E] border border-[#D4AF37]/30 rounded-xl px-4 py-3 text-[#FFD700] outline-none focus:border-[#FFD700]">
+            <div className={`p-6 rounded-3xl backdrop-blur-md shadow-[0_10px_30px_rgba(0,0,0,0.5)] mt-4 transition-all ${
+               aiAutoPilot ? 'bg-emerald-950/20 border border-emerald-500/30' : 'bg-[rgba(18,18,22,0.85)] border border-[rgba(212,175,55,0.25)]'
+            }`}>
+              <div className="flex items-center justify-between mb-4">
+                 <label className="text-[#C5A059] text-[10px] uppercase tracking-widest font-bold">Target Volatility Index (Market)</label>
+                 {aiAutoPilot && (
+                    <span className="px-2 py-0.5 rounded text-[8px] font-mono font-bold uppercase tracking-wider bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 flex items-center gap-1">
+                       <Lock className="w-2.5 h-2.5"/> AI Controlled
+                    </span>
+                 )}
+              </div>
+              <select 
+                disabled={aiAutoPilot}
+                value={activeSymbol} 
+                onChange={e => { setActiveSymbol(e.target.value); playTTS("Target market selected."); }} 
+                className={`w-full rounded-xl px-4 py-3 outline-none transition-all ${
+                   aiAutoPilot 
+                     ? 'bg-black/50 border border-emerald-500/30 text-emerald-400 font-mono text-xs cursor-not-allowed opacity-80' 
+                     : 'bg-[#0B0B0E] border border-[#D4AF37]/30 text-[#FFD700] focus:border-[#FFD700] cursor-pointer'
+                }`}
+              >
                 <option value="1HZ10V">Volatility 10 (1s) Index (Low Volatility)</option>
                 <option value="1HZ25V">Volatility 25 (1s) Index</option>
                 <option value="1HZ50V">Volatility 50 (1s) Index</option>
@@ -1006,9 +1086,27 @@ export default function Dashboard() {
               </select>
             </div>
 
-            <div className="bg-[rgba(18,18,22,0.85)] border border-[rgba(212,175,55,0.25)] rounded-3xl p-6 backdrop-blur-md shadow-[0_10px_30px_rgba(0,0,0,0.5)] mt-4">
-              <label className="block text-[#C5A059] text-[10px] uppercase tracking-widest font-bold mb-4">Trade Duration (Ticks)</label>
-              <select value={tickDuration} onChange={e => { setTickDuration(Number(e.target.value)); playTTS("Trade duration updated."); }} className="w-full bg-[#0B0B0E] border border-[#D4AF37]/30 rounded-xl px-4 py-3 text-[#FFD700] outline-none focus:border-[#FFD700]">
+            <div className={`p-6 rounded-3xl backdrop-blur-md shadow-[0_10px_30px_rgba(0,0,0,0.5)] mt-4 transition-all ${
+               aiAutoPilot ? 'bg-emerald-950/20 border border-emerald-500/30' : 'bg-[rgba(18,18,22,0.85)] border border-[rgba(212,175,55,0.25)]'
+            }`}>
+              <div className="flex items-center justify-between mb-4">
+                 <label className="text-[#C5A059] text-[10px] uppercase tracking-widest font-bold">Trade Duration (Ticks)</label>
+                 {aiAutoPilot && (
+                    <span className="px-2 py-0.5 rounded text-[8px] font-mono font-bold uppercase tracking-wider bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 flex items-center gap-1">
+                       <Lock className="w-2.5 h-2.5"/> AI Controlled
+                    </span>
+                 )}
+              </div>
+              <select 
+                disabled={aiAutoPilot}
+                value={tickDuration} 
+                onChange={e => { setTickDuration(Number(e.target.value)); playTTS("Trade duration updated."); }} 
+                className={`w-full rounded-xl px-4 py-3 outline-none transition-all ${
+                   aiAutoPilot 
+                     ? 'bg-black/50 border border-emerald-500/30 text-emerald-400 font-mono text-xs cursor-not-allowed opacity-80' 
+                     : 'bg-[#0B0B0E] border border-[#D4AF37]/30 text-[#FFD700] focus:border-[#FFD700] cursor-pointer'
+                }`}
+              >
                 {[...Array(10)].map((_, i) => (
                   <option key={i+1} value={i+1}>{i+1} Tick{i+1 !== 1 ? 's' : ''}</option>
                 ))}
@@ -1019,7 +1117,18 @@ export default function Dashboard() {
               Note: Base Stake, Target Profit, Stop Loss, and Martingale settings have been securely migrated to the <strong className="text-[#D4AF37]">MM Vault</strong>.
             </p>
             
-            <button onClick={handleSaveLogic} className="mt-4 bg-gradient-to-r from-[#D4AF37] to-[#FFD700] text-[#0B0B0E] font-bold py-4 rounded-xl uppercase tracking-widest text-[10px] hover:shadow-[0_0_20px_rgba(212,175,55,0.4)] transition-all flex items-center justify-center gap-2"><CheckCircle2 className="w-4 h-4"/> SAVE LOGIC CONFIGURATION</button>
+            <button 
+              onClick={handleSaveLogic} 
+              disabled={aiAutoPilot}
+              className={`mt-4 font-bold py-4 rounded-xl uppercase tracking-widest text-[10px] transition-all flex items-center justify-center gap-2 ${
+                 aiAutoPilot 
+                   ? 'bg-slate-800 text-slate-500 border border-slate-700 cursor-not-allowed opacity-60' 
+                   : 'bg-gradient-to-r from-[#D4AF37] to-[#FFD700] text-[#0B0B0E] hover:shadow-[0_0_20px_rgba(212,175,55,0.4)] cursor-pointer'
+              }`}
+            >
+              {aiAutoPilot ? <Lock className="w-4 h-4"/> : <CheckCircle2 className="w-4 h-4"/>} 
+              {aiAutoPilot ? 'LOCKED BY AI AUTONOMOUS AUTO-PILOT' : 'SAVE LOGIC CONFIGURATION'}
+            </button>
           </div>
         )}
 
@@ -1475,6 +1584,28 @@ export default function Dashboard() {
                        <div className="text-[9px] text-slate-400 font-mono mt-0.5">Frequency: {currentBestEdge?.dominant_loss_streak_count || 0} event(s)</div>
                     </div>
                  </div>
+
+                  {/* Empirical Streak Spectrum Distribution */}
+                  <div className="mt-3 bg-black/60 border border-[#D4AF37]/25 rounded-2xl p-3 relative z-10 flex flex-col gap-2 shadow-inner">
+                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+                        <div className="flex items-center gap-2 flex-wrap">
+                           <span className="text-[9px] font-bold uppercase tracking-widest text-red-400 flex items-center gap-1">
+                              <ShieldAlert className="w-3 h-3 text-red-400"/> Loss Spectrum:
+                           </span>
+                           <span className="font-mono text-xs font-semibold text-slate-200 bg-red-950/30 border border-red-500/30 px-2.5 py-0.5 rounded-lg">
+                              {currentBestEdge?.loss_streaks_formatted || '1L(1x)'}
+                           </span>
+                        </div>
+                        <div className="flex items-center gap-2 flex-wrap">
+                           <span className="text-[9px] font-bold uppercase tracking-widest text-green-400 flex items-center gap-1">
+                              <TrendingUp className="w-3 h-3 text-green-400"/> Win Spectrum:
+                           </span>
+                           <span className="font-mono text-xs font-semibold text-green-300 bg-green-950/30 border border-green-500/30 px-2.5 py-0.5 rounded-lg">
+                              {currentBestEdge?.win_streaks_formatted || '1W(1x)'}
+                           </span>
+                        </div>
+                     </div>
+                  </div>
               </div>
 
               {/* Filter & Search Bar */}
@@ -1538,6 +1669,26 @@ export default function Dashboard() {
                         <option value={8}>8 Ticks</option>
                         <option value={9}>9 Ticks</option>
                         <option value={10}>10 Ticks (Micro Trend)</option>
+                     </select>
+                   </div>
+
+                   <div className="flex flex-col gap-1">
+                     <label className="text-[9px] text-[#C5A059] font-bold uppercase tracking-widest flex items-center gap-1">
+                       <Clock className="w-2.5 h-2.5 text-[#D4AF37]"/> Timeframe
+                     </label>
+                     <select 
+                       value={matrixTimeframe} 
+                       onChange={e => {
+                         const tf = e.target.value as any;
+                         setMatrixTimeframe(tf);
+                         fetchMatrixData(evaluationTicks, tf);
+                       }} 
+                       className="bg-[#0B0B0E] border border-[#D4AF37]/30 text-[#FFD700] rounded-xl px-3 py-1.5 text-xs outline-none cursor-pointer"
+                     >
+                        <option value="all">🌐 All-Time Session</option>
+                        <option value="5m">⚡ Last 5 Mins (Fast Scalp)</option>
+                        <option value="15m">📊 Last 15 Mins (Cycle)</option>
+                        <option value="1h">📈 Last 1 Hour (Macro)</option>
                      </select>
                    </div>
 
@@ -1736,19 +1887,24 @@ export default function Dashboard() {
                                </span>
                              </td>
                              <td className="py-3.5 text-center">
-                               <div className="flex flex-col items-center gap-0.5">
-                                 <span className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold ${
-                                   item.max_loss_streak <= 2 ? 'bg-green-500/15 text-green-400 border border-green-500/30' :
-                                   item.max_loss_streak <= 3 ? 'bg-yellow-500/15 text-yellow-400 border border-yellow-500/30' :
-                                   'bg-red-500/15 text-red-400 border border-red-500/30'
-                                 }`}>
-                                   Peak: {item.max_loss_streak}L ({item.max_loss_streak_count || 1}x)
-                                 </span>
-                                 {item.dominant_loss_streak > 0 && (
-                                   <span className="text-[9px] text-slate-400 font-mono">
-                                     Typical: {item.dominant_loss_streak}L ({item.dominant_loss_streak_count || 0}x)
+                               <div className="flex flex-col items-center gap-1">
+                                 <div className="flex items-center gap-1.5 flex-wrap justify-center">
+                                   <span className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold ${
+                                     item.max_loss_streak <= 2 ? 'bg-green-500/15 text-green-400 border border-green-500/30' :
+                                     item.max_loss_streak <= 3 ? 'bg-yellow-500/15 text-yellow-400 border border-yellow-500/30' :
+                                     'bg-red-500/15 text-red-400 border border-red-500/30'
+                                   }`}>
+                                     Peak: {item.max_loss_streak}L ({item.max_loss_streak_count || 1}x)
                                    </span>
-                                 )}
+                                   {item.max_win_streak > 0 && (
+                                     <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-green-500/15 text-green-400 border border-green-500/30">
+                                       Peak: {item.max_win_streak}W
+                                     </span>
+                                   )}
+                                 </div>
+                                 <div className="text-[9px] text-slate-300 font-mono tracking-tight max-w-[220px] truncate" title={`Loss: ${item.loss_streaks_formatted || 'None'} | Win: ${item.win_streaks_formatted || 'None'}`}>
+                                   {item.loss_streaks_formatted || '1L(1x)'}
+                                 </div>
                                </div>
                              </td>
                              <td className="py-3.5 text-right">
