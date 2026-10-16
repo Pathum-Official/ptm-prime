@@ -713,7 +713,7 @@ export default function Dashboard() {
           } catch(e) {}
         }
       }
-      if (data.type === 'log' || data.type === 'alert' || data.type === 'trade_proposal' || data.type === 'account_info') {
+      if (data.type === 'log' || data.type === 'alert' || data.type === 'trade_proposal' || data.type === 'account_info' || data.type === 'status') {
         if (data.type === 'log' && data.message.includes('Signal Detected')) {
           triggerFlash('signal');
           if (voiceEnabled) {
