@@ -16,11 +16,8 @@ interface PricingPlan {
   isPopular?: boolean;
   tagline: string;
   priceUSD: number;
-  priceLKR: number;
   periodTextUSD: string;
-  periodTextLKR: string;
   subtextUSD?: string;
-  subtextLKR?: string;
   features: string[];
   ctaText: string;
 }
@@ -37,22 +34,17 @@ export default function Home() {
   const [message, setMessage] = useState("");
   const [flowState, setFlowState] = useState<"login" | "forgot" | "reset">("login");
 
-  // Currency selection: USD ($) or LKR (Rs.)
-  const [currency, setCurrency] = useState<"USD" | "LKR">("USD");
   const [selectedPlanForModal, setSelectedPlanForModal] = useState<PricingPlan | null>(null);
 
   const plans: PricingPlan[] = [
     {
       id: "monthly",
       name: "Monthly Plan",
-      badge: "FLEXIBLE COMMITMENT",
-      tagline: "Pay-as-you-go algorithmic execution. Full terminal capabilities with flexible monthly renewals.",
-      priceUSD: 49,
-      priceLKR: 15500,
+      badge: "FLEXIBLE TRIAL ACCESS",
+      tagline: "Full algorithmic terminal access with flexible month-to-month commitment. Ideal for initial validation.",
+      priceUSD: 25,
       periodTextUSD: "/ month",
-      periodTextLKR: "/ month",
-      subtextUSD: "Cancel or modify anytime",
-      subtextLKR: "Cancel or modify anytime",
+      subtextUSD: "Pay month-to-month • Cancel anytime",
       ctaText: "Activate Monthly Plan",
       features: [
         "Full Terminal Access for 1 Deriv Account",
@@ -68,20 +60,17 @@ export default function Home() {
     {
       id: "annual",
       name: "Annual Plan",
-      badge: "MOST POPULAR • SAVE 40%",
+      badge: "👑 MOST POPULAR • 67% DISCOUNT",
       isPopular: true,
-      tagline: "Our most requested institutional tier. A complete year of continuous automated profits with 40% discount.",
-      priceUSD: 29,
-      priceLKR: 9200,
-      periodTextUSD: "/ month (billed $348 / yr)",
-      periodTextLKR: "/ month (billed Rs. 110,000 / yr)",
-      subtextUSD: "Save $240 per year compared to monthly billing",
-      subtextLKR: "Save over Rs. 75,000 per year compared to monthly",
+      tagline: "Our most requested institutional tier. A complete year of continuous automated execution paid upfront.",
+      priceUSD: 99,
+      periodTextUSD: "/ year ($8.25 / month equivalent)",
+      subtextUSD: "Save $201 compared to paying month-to-month",
       ctaText: "Activate Annual Plan",
       features: [
         "Includes Everything in Monthly Plan",
-        "Full 12-Month Continuous Algorithm Execution",
-        "2 Months Free Platform Access Included",
+        "Complete 12-Month Continuous Algorithm Execution",
+        "Massive 67% Discount Off Monthly Billing",
         "Priority High-Frequency Execution Queue (<15ms)",
         "Advanced Masaniello Multi-Tier Circuit Breakers",
         "Instant Telegram Remote Bot Automation",
@@ -92,14 +81,11 @@ export default function Home() {
     {
       id: "lifetime",
       name: "Lifetime Plan",
-      badge: "VIP FOUNDER PASS • ZERO RECURRING FEES",
-      tagline: "Permanent, unconditional terminal ownership. Pay once and never worry about subscriptions again.",
+      badge: "🔥 VIP FOUNDER PASS • UNLIMITED ACCESS",
+      tagline: "Permanent, unconditional terminal ownership. Pay once and own the quantitative system for life.",
       priceUSD: 199,
-      priceLKR: 62000,
       periodTextUSD: "one-time payment",
-      periodTextLKR: "one-time payment",
-      subtextUSD: "Lifetime license • Zero renewal fees forever",
-      subtextLKR: "Lifetime license • Zero renewal fees forever",
+      subtextUSD: "Zero recurring renewal fees forever",
       ctaText: "Claim Lifetime License",
       features: [
         "Permanent Terminal License — Never Pay Renewals",
@@ -115,14 +101,10 @@ export default function Home() {
   ];
 
   const handleOpenLiveChatForPlan = (plan: PricingPlan) => {
-    const formattedPrice = currency === "USD" 
-      ? `$${plan.priceUSD} ${plan.periodTextUSD}` 
-      : `Rs. ${plan.priceLKR.toLocaleString()} ${plan.periodTextLKR}`;
-
     if (typeof window !== "undefined") {
       window.dispatchEvent(new CustomEvent("open_ptm_live_chat", {
         detail: {
-          initialMsg: `Hello PTM Prime Team. I would like to subscribe to the ${plan.name} (${formattedPrice}). Please provide activation and payment details.`
+          initialMsg: `Hello PTM Prime Team. I would like to subscribe to the ${plan.name} ($${plan.priceUSD} ${plan.periodTextUSD}). Please provide activation and payment details.`
         }
       }));
     }
@@ -375,41 +357,14 @@ export default function Home() {
 
       {/* Pricing Section (Choose Your Plan: Monthly, Annual, Lifetime) */}
       <section id="pricing" className="py-24 px-6 max-w-7xl mx-auto relative z-10 border-t border-white/[0.08]">
-        <div className="text-center mb-12">
+        <div className="text-center mb-16">
           <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white/[0.04] text-[#D4AF37] text-[10px] font-mono font-bold uppercase tracking-widest mb-4 border border-white/10">
             TRANSPARENT LICENSING • ZERO HIDDEN FEES
           </div>
           <h2 className="text-3xl sm:text-5xl font-serif font-extrabold text-white mb-4">Choose Your Plan</h2>
           <p className="text-slate-400 max-w-2xl mx-auto text-sm sm:text-base font-light">
-            Select the membership tier that aligns with your trading volume. All plans include full algorithmic execution access.
+            Select the membership tier that aligns with your trading goals. Maximize savings and secure continuous execution with upfront yearly or lifetime licenses.
           </p>
-        </div>
-
-        {/* Currency Switcher */}
-        <div className="flex items-center justify-center gap-3 mb-14">
-          <span className="text-xs font-mono uppercase tracking-widest text-slate-400">Display Currency:</span>
-          <div className="inline-flex items-center bg-[#101016] border border-white/10 p-1 rounded-full text-xs font-mono font-bold">
-            <button
-              onClick={() => setCurrency("USD")}
-              className={`px-4 py-1.5 rounded-full transition-all cursor-pointer ${
-                currency === "USD" 
-                  ? "bg-[#D4AF37] text-black shadow-md font-extrabold" 
-                  : "text-slate-400 hover:text-white"
-              }`}
-            >
-              USD ($)
-            </button>
-            <button
-              onClick={() => setCurrency("LKR")}
-              className={`px-4 py-1.5 rounded-full transition-all cursor-pointer ${
-                currency === "LKR" 
-                  ? "bg-[#D4AF37] text-black shadow-md font-extrabold" 
-                  : "text-slate-400 hover:text-white"
-              }`}
-            >
-              LKR (Rs.)
-            </button>
-          </div>
         </div>
 
         {/* The Three Plans Grid: Monthly, Annual, Lifetime */}
@@ -418,12 +373,9 @@ export default function Home() {
             const isAnnual = plan.id === "annual";
             const isLifetime = plan.id === "lifetime";
             
-            const displayPrice = currency === "USD" 
-              ? `$${plan.priceUSD}` 
-              : `Rs. ${plan.priceLKR.toLocaleString()}`;
-              
-            const periodLabel = currency === "USD" ? plan.periodTextUSD : plan.periodTextLKR;
-            const subtextLabel = currency === "USD" ? plan.subtextUSD : plan.subtextLKR;
+            const displayPrice = `$${plan.priceUSD}`;
+            const periodLabel = plan.periodTextUSD;
+            const subtextLabel = plan.subtextUSD;
 
             return (
               <div 
@@ -658,7 +610,7 @@ export default function Home() {
               <div>
                 <div className="text-[10px] uppercase tracking-widest text-slate-400 font-mono">License Fee</div>
                 <div className="text-2xl font-mono font-extrabold text-[#FFD700]">
-                  {currency === "USD" ? `$${selectedPlanForModal.priceUSD}` : `Rs. ${selectedPlanForModal.priceLKR.toLocaleString()}`}
+                  ${selectedPlanForModal.priceUSD}
                 </div>
               </div>
               <div className="text-right">
@@ -677,7 +629,7 @@ export default function Home() {
               {/* WhatsApp Instant Activation */}
               <a 
                 href={`https://wa.me/94773535384?text=${encodeURIComponent(
-                  `Hello PTM Prime Team. I would like to activate the ${selectedPlanForModal.name} (${currency === "USD" ? `$${selectedPlanForModal.priceUSD}` : `Rs. ${selectedPlanForModal.priceLKR.toLocaleString()}`}). Please provide payment settlement details.`
+                  `Hello PTM Prime Team. I would like to activate the ${selectedPlanForModal.name} ($${selectedPlanForModal.priceUSD}). Please provide payment settlement details.`
                 )}`}
                 target="_blank"
                 className="w-full py-4 px-6 rounded-xl bg-[#25D366] hover:bg-[#20ba59] text-black font-extrabold uppercase tracking-wider text-xs flex items-center justify-center gap-3 transition-all shadow-[0_0_20px_rgba(37,211,102,0.4)] cursor-pointer"
