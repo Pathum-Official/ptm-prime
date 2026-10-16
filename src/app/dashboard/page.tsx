@@ -26,10 +26,10 @@ export default function Dashboard() {
   
   // Strategy Logic State
   const [strategy, setStrategy] = useState("sniper");
-  const [initialStake, setInitialStake] = useState(10);
-  const [targetProfit, setTargetProfit] = useState(50);
-  const [stopLoss, setStopLoss] = useState(100);
-  const [multiplier, setMultiplier] = useState(2.1);
+  const [initialStake, setInitialStake] = useState(0.35);
+  const [targetProfit, setTargetProfit] = useState(10);
+  const [stopLoss, setStopLoss] = useState(60);
+  const [multiplier, setMultiplier] = useState(2.25);
   const [cooldownPeriod, setCooldownPeriod] = useState(0);
   const [winCooldown, setWinCooldown] = useState(0);
   const [lossCooldown, setLossCooldown] = useState(0);
@@ -119,8 +119,8 @@ export default function Dashboard() {
   const historyWinRate = historyTotal > 0 ? ((historyWins / historyTotal) * 100).toFixed(1) : '0.0';
 
   // Logic Settings State
-  const [strategyCore, setStrategyCore] = useState("apex");
-  const [activeSymbol, setActiveSymbol] = useState("1HZ100V");
+  const [strategyCore, setStrategyCore] = useState("low_vol_rsi_bb");
+  const [activeSymbol, setActiveSymbol] = useState("R_25");
   const [tickDuration, setTickDuration] = useState(5);
   const [accountType, setAccountType] = useState("demo");
 
@@ -173,6 +173,30 @@ export default function Dashboard() {
   };
 
   useEffect(() => {
+    // Instant cache hydration from localStorage to prevent any reset flicker
+    try {
+      const cached = localStorage.getItem("ptm_logic_settings");
+      if (cached) {
+        const c = JSON.parse(cached);
+        if (c.active_strategy) setStrategy(c.active_strategy);
+        if (c.strategy_core) setStrategyCore(c.strategy_core);
+        if (c.active_symbol) setActiveSymbol(c.active_symbol);
+        if (c.tick_duration !== undefined) setTickDuration(c.tick_duration);
+        if (c.stake_amount !== undefined) {
+          setInitialStake(c.stake_amount);
+          setCurrentStake(c.stake_amount);
+        }
+        if (c.take_profit !== undefined) setTargetProfit(c.take_profit);
+        if (c.stop_loss !== undefined) setStopLoss(c.stop_loss);
+        if (c.martingale_multiplier !== undefined) setMultiplier(c.martingale_multiplier);
+        if (c.cooldown_period !== undefined) setCooldownPeriod(c.cooldown_period);
+        if (c.win_cooldown !== undefined) setWinCooldown(c.win_cooldown);
+        if (c.loss_cooldown !== undefined) setLossCooldown(c.loss_cooldown);
+        if (c.max_martingale_steps !== undefined) setMaxMartingaleSteps(c.max_martingale_steps);
+        if (c.circuit_breaker_pause !== undefined) setCircuitBreakerPause(c.circuit_breaker_pause);
+      }
+    } catch (e) {}
+
     const loadSettings = async () => {
       try {
         const res = await fetch(`${API_URL}/api/v1/users/me`, {credentials: "include", headers: {"ngrok-skip-browser-warning": "true", "Authorization": `Bearer ${localStorage.getItem("token")}`}});
@@ -200,18 +224,25 @@ export default function Dashboard() {
           // Legacy support: if has_deriv_token is true but specific ones aren't, consider it real
           if (data.has_deriv_token && !data.has_real_token && !data.has_demo_token) setHasRealToken(true);
           if (data.logic) {
-            setStrategy(data.logic.active_strategy);
+            if (data.logic.active_strategy) setStrategy(data.logic.active_strategy);
             if (data.logic.strategy_core) setStrategyCore(data.logic.strategy_core);
             if (data.logic.active_symbol) setActiveSymbol(data.logic.active_symbol);
             if (data.logic.tick_duration !== undefined) setTickDuration(data.logic.tick_duration);
-            setInitialStake(data.logic.stake_amount);
-            setCurrentStake(data.logic.stake_amount);
-            setTargetProfit(data.logic.take_profit);
-            setStopLoss(data.logic.stop_loss);
-            setMultiplier(data.logic.martingale_multiplier);
-            setCooldownPeriod(data.logic.cooldown_period || 0);
-            setWinCooldown(data.logic.win_cooldown || 0);
-            setLossCooldown(data.logic.loss_cooldown || 0);
+            if (data.logic.stake_amount !== undefined) {
+              setInitialStake(data.logic.stake_amount);
+              setCurrentStake(data.logic.stake_amount);
+            }
+            if (data.logic.take_profit !== undefined) setTargetProfit(data.logic.take_profit);
+            if (data.logic.stop_loss !== undefined) setStopLoss(data.logic.stop_loss);
+            if (data.logic.martingale_multiplier !== undefined) setMultiplier(data.logic.martingale_multiplier);
+            if (data.logic.cooldown_period !== undefined) setCooldownPeriod(data.logic.cooldown_period || 0);
+            if (data.logic.win_cooldown !== undefined) setWinCooldown(data.logic.win_cooldown || 0);
+            if (data.logic.loss_cooldown !== undefined) setLossCooldown(data.logic.loss_cooldown || 0);
+            if (data.logic.max_martingale_steps !== undefined) setMaxMartingaleSteps(data.logic.max_martingale_steps);
+            if (data.logic.circuit_breaker_pause !== undefined) setCircuitBreakerPause(data.logic.circuit_breaker_pause);
+
+            // Persist authoritative database settings to local cache
+            localStorage.setItem("ptm_logic_settings", JSON.stringify(data.logic));
           }
         
         // Fetch current bot running status
@@ -237,12 +268,34 @@ export default function Dashboard() {
 
   const handleSaveLogic = async () => {
     try {
+      const payload = {
+        active_strategy: strategy,
+        strategy_core: strategyCore,
+        active_symbol: activeSymbol,
+        tick_duration: tickDuration,
+        stake_amount: initialStake,
+        take_profit: targetProfit,
+        stop_loss: stopLoss,
+        martingale_multiplier: multiplier,
+        cooldown_period: cooldownPeriod,
+        win_cooldown: winCooldown,
+        loss_cooldown: lossCooldown,
+        max_martingale_steps: maxMartingaleSteps,
+        circuit_breaker_pause: circuitBreakerPause
+      };
+      localStorage.setItem("ptm_logic_settings", JSON.stringify(payload));
       const res = await fetch(`${API_URL}/api/v1/users/settings/logic`, {
         method: "POST", headers: { "ngrok-skip-browser-warning": "true", "Authorization": `Bearer ${localStorage.getItem("token")}`, "Content-Type": "application/json" }, credentials: "include",
-        body: JSON.stringify({ active_strategy: strategy, strategy_core: strategyCore, active_symbol: activeSymbol, tick_duration: tickDuration, stake_amount: initialStake, take_profit: targetProfit, stop_loss: stopLoss, martingale_multiplier: multiplier, cooldown_period: cooldownPeriod, win_cooldown: winCooldown, loss_cooldown: lossCooldown, max_martingale_steps: maxMartingaleSteps, circuit_breaker_pause: circuitBreakerPause })
+        body: JSON.stringify(payload)
       });
-      if (res.ok) { showToast("Logic configuration saved successfully!", "success"); playTTS("Money management logic securely locked and saved."); }
-      else { showToast("Failed to save logic.", "error"); playTTS("Failed to save configuration."); }
+      if (res.ok) { 
+        showToast("Settings locked & saved to database!", "success"); 
+        playTTS("Money management logic securely locked and saved."); 
+      }
+      else { 
+        showToast("Failed to save logic.", "error"); 
+        playTTS("Failed to save configuration."); 
+      }
     } catch (e) { showToast("API unreachable.", "error"); }
   };
 
@@ -407,6 +460,23 @@ export default function Dashboard() {
   const toggleBot = async () => {
     try {
       const endpoint = isRunning ? "/api/v1/bot/stop" : "/api/v1/bot/start";
+      if (!isRunning) {
+        localStorage.setItem("ptm_logic_settings", JSON.stringify({
+          active_strategy: strategy,
+          strategy_core: strategyCore,
+          active_symbol: activeSymbol,
+          tick_duration: tickDuration,
+          stake_amount: initialStake,
+          take_profit: targetProfit,
+          stop_loss: stopLoss,
+          martingale_multiplier: multiplier,
+          cooldown_period: cooldownPeriod,
+          win_cooldown: winCooldown,
+          loss_cooldown: lossCooldown,
+          max_martingale_steps: maxMartingaleSteps,
+          circuit_breaker_pause: circuitBreakerPause
+        }));
+      }
       const res = await fetch(`${API_URL}${endpoint}`, {
         method: "POST", headers: { "ngrok-skip-browser-warning": "true", "Authorization": `Bearer ${localStorage.getItem("token")}`, "Content-Type": "application/json" }, credentials: "include",
         body: isRunning ? "{}" : JSON.stringify({ 
