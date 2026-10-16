@@ -269,11 +269,11 @@ export default function Dashboard() {
     }
   };
 
-  const handleConsultGeminiAi = async () => {
+  const handleConsultNeuralAi = async () => {
     try {
       setIsConsultingAi(true);
-      showToast("Consulting Google Gemini AI Brain across all 64 setups...", "success");
-      playTTS("Consulting Gemini A I Brain for best live edge.");
+      showToast("Consulting PTM Quantum AI Brain across all 64 setups...", "success");
+      playTTS("Consulting Quantum AI Brain for best live edge.");
       const res = await fetch(`${API_URL}/api/v1/analytics/ai-consult?tick=${evaluationTicks}`, {
         method: "POST",
         headers: {
@@ -294,14 +294,14 @@ export default function Dashboard() {
               ai_edge: data.ai_analysis
             }
           }));
-          showToast(`🤖 Gemini AI verified: ${data.ai_analysis.best_strategy_name} (${data.ai_analysis.best_symbol})!`, "success");
-          playTTS(`Gemini selected ${data.ai_analysis.best_strategy_name} on ${data.ai_analysis.best_symbol}`);
+          showToast(`🤖 PTM Neural AI verified: ${data.ai_analysis.best_strategy_name} (${data.ai_analysis.best_symbol})!`, "success");
+          playTTS(`Neural AI selected ${data.ai_analysis.best_strategy_name} on ${data.ai_analysis.best_symbol}`);
         }
       } else {
-        showToast("Gemini AI consultation busy. Retrying failover pool...", "error");
+        showToast("Neural AI consultation busy. Retrying failover pool...", "error");
       }
     } catch(e) {
-      showToast("Failed to consult Gemini AI", "error");
+      showToast("Failed to consult Neural AI", "error");
     } finally {
       setIsConsultingAi(false);
     }
@@ -368,7 +368,7 @@ export default function Dashboard() {
     ai_score: aiAnalysis.ai_confidence_score || bestSetup?.ai_score || 75.0,
     market_regime: aiAnalysis.market_regime || "Statistical Edge",
     reasoning: aiAnalysis.reasoning || "Evaluated across win rate consistency, verified sample size, minimal loss streaks, and active signal momentum.",
-    ai_model: aiAnalysis.ai_model || "Gemini 3.8 Intelligence",
+    ai_model: aiAnalysis.ai_model || "PTM Neural Quantum AI",
     win_rate: bestSetup?.win_rate || 0,
     wins: bestSetup?.wins || 0,
     losses: bestSetup?.losses || 0,
@@ -940,12 +940,12 @@ export default function Dashboard() {
                            </span>
                         </div>
                         <p className="text-xs text-slate-300 mt-1.5 leading-relaxed max-w-2xl">
-                          When enabled, Google Gemini AI Brain continuously evaluates real-time market regimes across all 64 setups and automatically adapts the bot's strategy, symbol, tick duration, and safe martingale steps for maximum statistical win-rate.
+                          When enabled, PTM Neural AI Brain continuously evaluates real-time market regimes across all 64 setups and automatically adapts the bot's strategy, symbol, tick duration, and safe martingale steps for maximum statistical win-rate.
                         </p>
                         {aiAutoPilot && (
                            <div className="mt-3 flex items-center gap-2 text-xs font-mono text-emerald-400 bg-emerald-950/30 border border-emerald-500/30 px-3 py-1.5 rounded-xl w-fit">
                               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-                              <span>Auto-syncing to Gemini AI's Current Best Live Edge</span>
+                              <span>Auto-syncing to PTM Neural AI's Current Best Live Edge</span>
                            </div>
                         )}
                      </div>
@@ -978,14 +978,14 @@ export default function Dashboard() {
             <div className="bg-[rgba(18,18,22,0.85)] border border-[rgba(212,175,55,0.25)] rounded-3xl p-6 backdrop-blur-md shadow-[0_10px_30px_rgba(0,0,0,0.5)]">
               <label className="block text-[#C5A059] text-[10px] uppercase tracking-widest font-bold mb-4">Active Strategy Core</label>
               <select value={strategyCore} onChange={e => { setStrategyCore(e.target.value); playTTS("Strategy core selected."); }} className="w-full bg-[#0B0B0E] border border-[#D4AF37]/30 rounded-xl px-4 py-3 text-[#FFD700] outline-none focus:border-[#FFD700]">
-                <option value="trend_momentum_rider">Trend Momentum Rider (EMA 7/21 Micro-Trend + RSI Flow)</option>
-                <option value="apex_momentum">Apex Momentum Engine (Tick Velocity + Exhaustion)</option>
-                <option value="rubber_band">Rubber-Band Spike Reversion (Extreme Over-extension)</option>
-                <option value="vietnam_smart_scan">Advanced Vietnam Logic (Deep Market Scan & RSI)</option>
-                <option value="low_vol_rsi_bb">Low-Vol RSI-Bollinger Reversal (V10 / 1s Optimized)</option>
-                <option value="macd_kinetic_impulse">MACD Kinetic Impulse (Histogram Expansion Velocity)</option>
-                <option value="heikin_ashi_pulse">Heikin-Ashi Micro-Wave (Noise-Free Synthetic Trend Ride)</option>
-                <option value="breakout_box_scalper">Donchian Breakout Scalper (Channel Squeeze & Expansion)</option>
+                <option value="trend_momentum_rider">Directional Trend Surge (Multi-Harmonic Flow Alignment)</option>
+                <option value="apex_momentum">Apex Kinetic Impulse (High-Frequency Velocity Physics)</option>
+                <option value="rubber_band">Rubber-Band Elastic Scalp (High-Sigma Mean Reversion)</option>
+                <option value="vietnam_smart_scan">Institutional Trend Matrix (Multi-Factor Liquidity Scan)</option>
+                <option value="low_vol_rsi_bb">Low-Vol Tactical Reversal (Statistical Envelope Squeeze)</option>
+                <option value="macd_kinetic_impulse">Kinetic Momentum Pulse (Multi-Frequency Acceleration)</option>
+                <option value="heikin_ashi_pulse">Synthetic Micro-Wave Scalp (Noise-Filtered Wave Continuation)</option>
+                <option value="breakout_box_scalper">Dynamic Breakout Scalper (Liquidity Compression Expansion)</option>
               </select>
             </div>
 
@@ -1377,7 +1377,7 @@ export default function Dashboard() {
                        </span>
                        <span className="text-[10px] font-sans font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 flex items-center gap-1.5">
                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
-                         🤖 {currentBestEdge?.ai_model || 'Gemini 3.8 AI Brain'}
+                         🤖 {currentBestEdge?.ai_model || 'PTM Neural Quantum AI'}
                        </span>
                        {currentBestEdge?.market_regime && (
                          <span className="text-[10px] font-sans font-semibold tracking-wider px-2.5 py-0.5 rounded-full bg-blue-500/15 text-blue-300 border border-blue-500/30">
@@ -1394,10 +1394,10 @@ export default function Dashboard() {
                           </div>
                        </div>
                        <button
-                         onClick={handleConsultGeminiAi}
+                         onClick={handleConsultNeuralAi}
                          disabled={isConsultingAi}
                          className="px-3.5 py-2 rounded-xl text-[10px] font-bold uppercase tracking-wider bg-black/60 hover:bg-[#D4AF37]/20 border border-[#D4AF37]/40 text-[#FFD700] transition-all flex items-center gap-2 cursor-pointer shadow-md disabled:opacity-50"
-                         title="Force fresh Gemini AI deep quantitative evaluation"
+                         title="Force fresh Neural AI quantitative evaluation"
                        >
                          <Sparkles className={`w-3.5 h-3.5 ${isConsultingAi ? 'animate-spin text-[#FFD700]' : 'text-yellow-400'}`} />
                          <span>{isConsultingAi ? 'AI THINKING...' : 'AI CONSULT'}</span>
@@ -1487,14 +1487,14 @@ export default function Dashboard() {
                        className="bg-[#0B0B0E] border border-[#D4AF37]/30 text-[#FFD700] rounded-xl px-3 py-1.5 text-xs outline-none"
                      >
                         <option value="all">All Strategies</option>
-                        <option value="trend_momentum_rider">Trend Momentum Rider</option>
-                        <option value="low_vol_rsi_bb">Low-Vol RSI-BB</option>
-                        <option value="vietnam_smart_scan">Vietnam Smart Scan</option>
-                        <option value="apex_momentum">Apex Momentum</option>
-                        <option value="rubber_band">Rubber-Band Reversion</option>
-                        <option value="macd_kinetic_impulse">MACD Kinetic Impulse</option>
-                        <option value="heikin_ashi_pulse">Heikin-Ashi Micro-Wave</option>
-                        <option value="breakout_box_scalper">Donchian Breakout Scalper</option>
+                        <option value="trend_momentum_rider">Directional Trend Surge</option>
+                        <option value="low_vol_rsi_bb">Low-Vol Tactical Reversal</option>
+                        <option value="vietnam_smart_scan">Institutional Trend Matrix</option>
+                        <option value="apex_momentum">Apex Kinetic Impulse</option>
+                        <option value="rubber_band">Rubber-Band Elastic Scalp</option>
+                        <option value="macd_kinetic_impulse">Kinetic Momentum Pulse</option>
+                        <option value="heikin_ashi_pulse">Synthetic Micro-Wave Scalp</option>
+                        <option value="breakout_box_scalper">Dynamic Breakout Scalper</option>
                      </select>
                    </div>
 

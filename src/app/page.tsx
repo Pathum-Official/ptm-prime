@@ -103,13 +103,13 @@ export default function Home() {
       <section className="relative pt-32 pb-20 px-6 max-w-7xl mx-auto text-center z-10">
         <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-[#D4AF37]/30 bg-[#D4AF37]/5 text-[#C5A059] text-[10px] font-bold uppercase tracking-[0.3em] mb-8 animate-fade-in-up">
           <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-          Engine v2.0 Live - Triple Confluence Tech
+          Engine v2.0 Live - Proprietary Quantum Confluence Tech
         </div>
         <h1 className="text-5xl md:text-7xl font-serif font-bold text-white mb-6 leading-tight drop-shadow-[0_0_30px_rgba(255,255,255,0.2)]">
           Dominate the Markets with <br/><span className="text-transparent bg-clip-text bg-gradient-to-r from-[#D4AF37] via-[#FFD700] to-[#D4AF37]">Precision AI.</span>
         </h1>
         <p className="text-[#C5A059] text-lg md:text-xl max-w-3xl mx-auto mb-10 tracking-wide font-light">
-          PTM Prime combines real-time RSI, EMA, and Bollinger Bands to deliver high-probability trade execution on Deriv. Protect your capital with the built-in Masaniello Money Management vault.
+          PTM Prime combines real-time Multi-Harmonic Flow Alignment, Statistical Volatility Envelopes, and Kinetic Momentum Vectors to deliver institutional-grade trade execution on Deriv. Protect your capital with the built-in Masaniello Money Management vault.
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
           <button onClick={() => setShowLogin(true)} className="bg-gradient-to-r from-[#D4AF37] to-[#FFD700] text-[#0B0B0E] font-bold py-4 px-10 rounded-full flex items-center gap-2 hover:shadow-[0_0_40px_rgba(212,175,55,0.6)] hover:scale-105 transition-all uppercase tracking-widest text-sm">
@@ -155,8 +155,8 @@ export default function Home() {
         <div className="grid md:grid-cols-3 gap-8">
           <div className="bg-[#121216]/80 backdrop-blur-md border border-[#D4AF37]/20 p-8 rounded-3xl hover:border-[#D4AF37]/50 hover:-translate-y-2 transition-all duration-300">
             <div className="w-14 h-14 rounded-2xl bg-[#D4AF37]/10 flex items-center justify-center text-[#FFD700] mb-6"><Target className="w-7 h-7" /></div>
-            <h3 className="text-xl font-bold text-white mb-3">Triple Confluence Engine</h3>
-            <p className="text-slate-400 leading-relaxed text-sm">We don't guess. The bot requires strict alignment of RSI, 20-EMA, and Bollinger Bands before entering a trade, pushing win rates close to 100%.</p>
+            <h3 className="text-xl font-bold text-white mb-3">Proprietary Quantum Confluence</h3>
+            <p className="text-slate-400 leading-relaxed text-sm">We don't guess. The bot requires strict mathematical alignment of multi-timeframe directional impulse, dynamic volatility envelopes, and liquidity exhaustions before entering a trade.</p>
           </div>
           <div className="bg-[#121216]/80 backdrop-blur-md border border-[#D4AF37]/20 p-8 rounded-3xl hover:border-[#D4AF37]/50 hover:-translate-y-2 transition-all duration-300">
             <div className="w-14 h-14 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-400 mb-6"><ShieldAlert className="w-7 h-7" /></div>
@@ -183,9 +183,9 @@ export default function Home() {
             <h3 className="text-white text-xl font-bold mb-2">Starter</h3>
             <div className="text-4xl font-bold text-white mb-6">$49<span className="text-sm text-slate-500 font-normal">/mo</span></div>
             <ul className="flex flex-col gap-4 mb-8">
-              <li className="flex gap-3 text-slate-300 text-sm"><CheckCircle2 className="w-5 h-5 text-green-500 shrink-0"/> Classic RSI Logic</li>
+              <li className="flex gap-3 text-slate-300 text-sm"><CheckCircle2 className="w-5 h-5 text-green-500 shrink-0"/> Tactical Reversal Core</li>
               <li className="flex gap-3 text-slate-300 text-sm"><CheckCircle2 className="w-5 h-5 text-green-500 shrink-0"/> Deriv Token Integration</li>
-              <li className="flex gap-3 text-slate-500 text-sm opacity-50"><CheckCircle2 className="w-5 h-5 shrink-0"/> Triple Confluence Engine</li>
+              <li className="flex gap-3 text-slate-500 text-sm opacity-50"><CheckCircle2 className="w-5 h-5 shrink-0"/> Proprietary Quantum Confluence</li>
             </ul>
             <button className="w-full py-4 rounded-xl border border-slate-600 text-white font-bold uppercase tracking-widest text-xs hover:bg-white/5 transition-all">Select Plan</button>
           </div>
