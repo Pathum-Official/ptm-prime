@@ -322,7 +322,6 @@ export default function Dashboard() {
       const deployTick = optimalTick || (evaluationTicks === 0 ? 5 : evaluationTicks);
       setStrategyCore(strategyCoreToDeploy);
       setActiveSymbol(symbolToDeploy);
-      setMaxMartingaleSteps(recommendedMartingale);
       setTickDuration(deployTick);
 
       const res = await fetch(`${API_URL}/api/v1/analytics/deploy`, {
@@ -336,12 +335,11 @@ export default function Dashboard() {
         body: JSON.stringify({
           strategy_core: strategyCoreToDeploy,
           active_symbol: symbolToDeploy,
-          max_martingale_steps: recommendedMartingale,
           tick_duration: deployTick
         })
       });
       if (res.ok) {
-        showToast(`Deployed ${strategyCoreToDeploy} on ${symbolToDeploy} (${deployTick} Ticks, Martingale: ${recommendedMartingale})!`, "success");
+        showToast(`Deployed ${strategyCoreToDeploy} on ${symbolToDeploy} (${deployTick} Ticks)!`, "success");
         playTTS(`Strategy deployed. Configured for ${symbolToDeploy} at ${deployTick} ticks.`);
       } else {
         showToast("Failed to deploy strategy to live bot.", "error");
@@ -623,7 +621,7 @@ export default function Dashboard() {
         if (data.strategy_core) setStrategyCore(data.strategy_core);
         if (data.active_symbol) setActiveSymbol(data.active_symbol);
         if (data.tick_duration) setTickDuration(data.tick_duration);
-        if (data.max_martingale_steps) setMaxMartingaleSteps(data.max_martingale_steps);
+        // Note: maxMartingaleSteps is user's personal MM risk limit and is NEVER overwritten by AI
         showToast(data.message || `AI Auto-Pilot adapted edge to ${data.strategy_name || data.strategy_core} on ${data.active_symbol}!`, "success");
         if (voiceEnabled) {
           playTTS(`AI Auto-Pilot adapted edge to ${data.strategy_name || data.strategy_core} at ${data.tick_duration} ticks.`);
