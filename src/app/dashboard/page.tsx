@@ -459,8 +459,8 @@ export default function Dashboard() {
         if (c.cooldown_period !== undefined) setCooldownPeriod(c.cooldown_period);
         if (c.win_cooldown !== undefined) setWinCooldown(c.win_cooldown);
         if (c.loss_cooldown !== undefined) setLossCooldown(c.loss_cooldown);
-        if (c.max_martingale_steps !== undefined) setMaxMartingaleSteps(c.max_martingale_steps);
-        if (c.circuit_breaker_pause !== undefined) setCircuitBreakerPause(c.circuit_breaker_pause);
+        if (c.max_martingale_steps !== undefined && c.max_martingale_steps !== null) setMaxMartingaleSteps(Number(c.max_martingale_steps));
+        if (c.circuit_breaker_pause !== undefined && c.circuit_breaker_pause !== null) setCircuitBreakerPause(Number(c.circuit_breaker_pause));
       }
     } catch (e) {}
 
@@ -505,8 +505,8 @@ export default function Dashboard() {
             if (data.logic.cooldown_period !== undefined) setCooldownPeriod(data.logic.cooldown_period || 0);
             if (data.logic.win_cooldown !== undefined) setWinCooldown(data.logic.win_cooldown || 0);
             if (data.logic.loss_cooldown !== undefined) setLossCooldown(data.logic.loss_cooldown || 0);
-            if (data.logic.max_martingale_steps !== undefined) setMaxMartingaleSteps(data.logic.max_martingale_steps);
-            if (data.logic.circuit_breaker_pause !== undefined) setCircuitBreakerPause(data.logic.circuit_breaker_pause);
+            if (data.logic.max_martingale_steps !== undefined && data.logic.max_martingale_steps !== null) setMaxMartingaleSteps(Number(data.logic.max_martingale_steps));
+            if (data.logic.circuit_breaker_pause !== undefined && data.logic.circuit_breaker_pause !== null) setCircuitBreakerPause(Number(data.logic.circuit_breaker_pause));
             if (data.logic.ai_auto_pilot !== undefined) setAiAutoPilot(Boolean(data.logic.ai_auto_pilot));
 
             // Persist authoritative database settings to local cache
@@ -548,8 +548,8 @@ export default function Dashboard() {
         cooldown_period: cooldownPeriod,
         win_cooldown: winCooldown,
         loss_cooldown: lossCooldown,
-        max_martingale_steps: maxMartingaleSteps,
-        circuit_breaker_pause: circuitBreakerPause,
+        max_martingale_steps: Number(maxMartingaleSteps) >= 0 ? Number(maxMartingaleSteps) : 0,
+        circuit_breaker_pause: Number(circuitBreakerPause) >= 0 ? Number(circuitBreakerPause) : 0,
         ai_auto_pilot: aiAutoPilot
       };
       localStorage.setItem("ptm_logic_settings", JSON.stringify(payload));
@@ -1260,11 +1260,11 @@ export default function Dashboard() {
                 <div className="grid grid-cols-2 gap-4 mb-6">
                   <div className="col-span-1">
                     <label className="block text-red-400 text-[10px] uppercase tracking-widest font-bold mb-2">Max Losses (Circuit Breaker)</label>
-                    <input type="number" value={maxMartingaleSteps} onChange={e => setMaxMartingaleSteps(Number(e.target.value))} placeholder="e.g. 3" className="w-full bg-[#0B0B0E] border border-red-500/30 rounded-xl px-4 py-3 text-red-400 outline-none focus:border-red-400" />
+                    <input type="number" min="0" value={maxMartingaleSteps} onChange={e => setMaxMartingaleSteps(Number(e.target.value))} placeholder="0 (flat stake) or 1-10" className="w-full bg-[#0B0B0E] border border-red-500/30 rounded-xl px-4 py-3 text-red-400 outline-none focus:border-red-400 font-mono" />
                   </div>
                   <div className="col-span-1">
                     <label className="block text-[#C5A059] text-[10px] uppercase tracking-widest font-bold mb-2">Pause Duration (Mins)</label>
-                    <input type="number" value={circuitBreakerPause} onChange={e => setCircuitBreakerPause(Number(e.target.value))} placeholder="e.g. 15" className="w-full bg-[#0B0B0E] border border-[#D4AF37]/30 rounded-xl px-4 py-3 text-[#FFD700] outline-none focus:border-[#FFD700]" />
+                    <input type="number" min="0" value={circuitBreakerPause} onChange={e => setCircuitBreakerPause(Number(e.target.value))} placeholder="0 (no pause) or minutes" className="w-full bg-[#0B0B0E] border border-[#D4AF37]/30 rounded-xl px-4 py-3 text-[#FFD700] outline-none focus:border-[#FFD700] font-mono" />
                   </div>
                 </div>
                
