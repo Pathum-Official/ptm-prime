@@ -28,13 +28,23 @@ export function LiveChat() {
     scrollToBottom();
   }, [messages]);
 
-  // Load existing ticket on mount and start polling
+  // Load existing ticket on mount and listen to external chat open triggers
   useEffect(() => {
     const savedId = localStorage.getItem("ptm_ticket_id");
     if (savedId && !ticketId) {
       setTicketId(parseInt(savedId));
     }
-  }, []);
+
+    const handleExternalOpen = (e: any) => {
+      setIsOpen(true);
+      if (e.detail?.initialMsg) {
+        setInitialMsg(e.detail.initialMsg);
+        setReply(e.detail.initialMsg);
+      }
+    };
+    window.addEventListener("open_ptm_live_chat", handleExternalOpen);
+    return () => window.removeEventListener("open_ptm_live_chat", handleExternalOpen);
+  }, [ticketId]);
 
   useEffect(() => {
     if (ticketId) {
