@@ -3,7 +3,7 @@ import { API_URL, WS_URL } from '../config';
 
 
 import { useState, useEffect } from "react";
-import { Activity, ShieldAlert, Target, TrendingUp, Wallet, Power, Settings, LogOut, ChevronDown, ChevronUp, CheckCircle2, History, Banknote, Cpu, Flame, Zap, RefreshCw, Trash2, Sliders, Crown } from "lucide-react";
+import { Activity, ShieldAlert, Target, TrendingUp, Wallet, Power, Settings, LogOut, ChevronDown, ChevronUp, CheckCircle2, History, Banknote, Cpu, Flame, Zap, RefreshCw, Trash2, Sliders, Crown, Sparkles, Bot } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { Logo } from "@/components/Logo";
@@ -132,6 +132,8 @@ export default function Dashboard() {
   const [isFetchingMatrix, setIsFetchingMatrix] = useState(false);
   const [evaluationTicks, setEvaluationTicks] = useState<number>(5);
   const [isSettingTicks, setIsSettingTicks] = useState(false);
+  const [aiAutoPilot, setAiAutoPilot] = useState<boolean>(false);
+  const [isConsultingAi, setIsConsultingAi] = useState<boolean>(false);
 
   const handleSetEvaluationTicks = async (ticks: number) => {
     try {
@@ -241,6 +243,70 @@ export default function Dashboard() {
     }
   }, [activeTab, evaluationTicks]);
 
+  const handleToggleAiAutoPilot = async (enabled: boolean) => {
+    try {
+      setAiAutoPilot(enabled);
+      const res = await fetch(`${API_URL}/api/v1/analytics/ai-autopilot`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "ngrok-skip-browser-warning": "true",
+          "Authorization": `Bearer ${localStorage.getItem("token")}`
+        },
+        credentials: "include",
+        body: JSON.stringify({ enabled })
+      });
+      if (res.ok) {
+        showToast(enabled ? "🤖 AI Autonomous Trading Engaged!" : "AI Autonomous Trading Disabled (Manual Mode)", "success");
+        playTTS(enabled ? "A I Autonomous Trading activated. Bot will auto-deploy the top live edge." : "A I Autonomous mode disabled. Manual mode active.");
+      } else {
+        setAiAutoPilot(!enabled);
+        showToast("Failed to update AI Auto-Pilot status", "error");
+      }
+    } catch(e) {
+      setAiAutoPilot(!enabled);
+      showToast("Error toggling AI Auto-Pilot", "error");
+    }
+  };
+
+  const handleConsultGeminiAi = async () => {
+    try {
+      setIsConsultingAi(true);
+      showToast("Consulting Google Gemini AI Brain across all 64 setups...", "success");
+      playTTS("Consulting Gemini A I Brain for best live edge.");
+      const res = await fetch(`${API_URL}/api/v1/analytics/ai-consult?tick=${evaluationTicks}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "ngrok-skip-browser-warning": "true",
+          "Authorization": `Bearer ${localStorage.getItem("token")}`
+        },
+        credentials: "include"
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.ai_analysis) {
+          setMatrixData((prev: any) => ({
+            ...prev,
+            ai_analysis: data.ai_analysis,
+            summary: {
+              ...(prev?.summary || {}),
+              ai_edge: data.ai_analysis
+            }
+          }));
+          showToast(`🤖 Gemini AI verified: ${data.ai_analysis.best_strategy_name} (${data.ai_analysis.best_symbol})!`, "success");
+          playTTS(`Gemini selected ${data.ai_analysis.best_strategy_name} on ${data.ai_analysis.best_symbol}`);
+        }
+      } else {
+        showToast("Gemini AI consultation busy. Retrying failover pool...", "error");
+      }
+    } catch(e) {
+      showToast("Failed to consult Gemini AI", "error");
+    } finally {
+      setIsConsultingAi(false);
+    }
+  };
+
   const handleDeployLabStrategy = async (strategyCoreToDeploy: string, symbolToDeploy: string, recommendedMartingale: number, optimalTick?: number) => {
     try {
       const deployTick = optimalTick || evaluationTicks;
@@ -290,7 +356,26 @@ export default function Dashboard() {
       return 0;
     });
 
+  const aiAnalysis = matrixData?.ai_analysis || matrixData?.summary?.ai_edge;
   const bestSetup = matrixData?.summary?.best_setup || (filteredLeaderboard.length > 0 ? filteredLeaderboard[0] : null);
+  const currentBestEdge = aiAnalysis && aiAnalysis.best_strategy ? {
+    strategy: aiAnalysis.best_strategy,
+    strategy_name: aiAnalysis.best_strategy_name || bestSetup?.strategy_name,
+    symbol: aiAnalysis.best_symbol,
+    symbol_name: aiAnalysis.best_symbol_name || bestSetup?.symbol_name,
+    best_tick: aiAnalysis.optimal_ticks || bestSetup?.best_tick || evaluationTicks,
+    recommended_martingale: aiAnalysis.safe_martingale_steps || bestSetup?.recommended_martingale || 2,
+    ai_score: aiAnalysis.ai_confidence_score || bestSetup?.ai_score || 75.0,
+    market_regime: aiAnalysis.market_regime || "Statistical Edge",
+    reasoning: aiAnalysis.reasoning || "Evaluated across win rate consistency, verified sample size, minimal loss streaks, and active signal momentum.",
+    ai_model: aiAnalysis.ai_model || "Gemini 3.8 Intelligence",
+    win_rate: bestSetup?.win_rate || 0,
+    wins: bestSetup?.wins || 0,
+    losses: bestSetup?.losses || 0,
+    max_loss_streak: bestSetup?.max_loss_streak || 0,
+    best_tick_win_rate: bestSetup?.best_tick_win_rate || bestSetup?.win_rate || 0,
+    total_trades: bestSetup?.total_trades || 0
+  } : bestSetup;
 
   // Load account type from localStorage on mount
   useEffect(() => {
@@ -408,6 +493,7 @@ export default function Dashboard() {
             if (data.logic.loss_cooldown !== undefined) setLossCooldown(data.logic.loss_cooldown || 0);
             if (data.logic.max_martingale_steps !== undefined) setMaxMartingaleSteps(data.logic.max_martingale_steps);
             if (data.logic.circuit_breaker_pause !== undefined) setCircuitBreakerPause(data.logic.circuit_breaker_pause);
+            if (data.logic.ai_auto_pilot !== undefined) setAiAutoPilot(Boolean(data.logic.ai_auto_pilot));
 
             // Persist authoritative database settings to local cache
             localStorage.setItem("ptm_logic_settings", JSON.stringify(data.logic));
@@ -449,7 +535,8 @@ export default function Dashboard() {
         win_cooldown: winCooldown,
         loss_cooldown: lossCooldown,
         max_martingale_steps: maxMartingaleSteps,
-        circuit_breaker_pause: circuitBreakerPause
+        circuit_breaker_pause: circuitBreakerPause,
+        ai_auto_pilot: aiAutoPilot
       };
       localStorage.setItem("ptm_logic_settings", JSON.stringify(payload));
       const res = await fetch(`${API_URL}/api/v1/users/settings/logic`, {
@@ -660,7 +747,8 @@ export default function Dashboard() {
           tick_duration: tickDuration,
           max_martingale_steps: maxMartingaleSteps,
           circuit_breaker_pause: circuitBreakerPause,
-          account_type: accountType
+          account_type: accountType,
+          ai_auto_pilot: aiAutoPilot
         })
       });
       if (res.ok) {
@@ -822,6 +910,70 @@ export default function Dashboard() {
         {activeTab === 'strategies' && (
           <div className="flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <h2 className="text-xl font-serif text-[#FFD700] tracking-widest border-b border-[#D4AF37]/20 pb-4 flex items-center gap-3"><Settings className="w-6 h-6"/> LOGIC CONFIGURATION</h2>
+            
+            {/* AI Autonomous Trading Engine (Auto-Pilot) Card */}
+            <div className={`p-6 rounded-3xl border-2 transition-all duration-300 relative overflow-hidden backdrop-blur-xl ${
+              aiAutoPilot 
+                ? 'bg-gradient-to-r from-emerald-950/40 via-[#121216] to-[#D4AF37]/10 border-emerald-500/60 shadow-[0_0_30px_rgba(16,185,129,0.2)]' 
+                : 'bg-[rgba(18,18,22,0.85)] border-[#D4AF37]/25 shadow-[0_10px_30px_rgba(0,0,0,0.5)]'
+            }`}>
+               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div className="flex items-start gap-4">
+                     <div className={`p-3 rounded-2xl shrink-0 transition-colors ${
+                       aiAutoPilot 
+                         ? 'bg-emerald-500 text-black shadow-[0_0_20px_rgba(16,185,129,0.6)]' 
+                         : 'bg-black/50 border border-slate-700 text-slate-400'
+                     }`}>
+                        <Cpu className="w-6 h-6 animate-pulse" />
+                     </div>
+                     <div>
+                        <div className="flex items-center gap-2 flex-wrap">
+                           <h3 className="text-base sm:text-lg font-serif font-bold text-white tracking-wide">
+                             🤖 AI Autonomous Trading Engine (Auto-Pilot)
+                           </h3>
+                           <span className={`text-[9px] font-sans font-extrabold uppercase px-2.5 py-0.5 rounded-full border ${
+                             aiAutoPilot 
+                               ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/50' 
+                               : 'bg-slate-800 text-slate-400 border-slate-700'
+                           }`}>
+                              {aiAutoPilot ? 'LIVE AUTONOMOUS ACTIVE' : 'MANUAL MODE'}
+                           </span>
+                        </div>
+                        <p className="text-xs text-slate-300 mt-1.5 leading-relaxed max-w-2xl">
+                          When enabled, Google Gemini AI Brain continuously evaluates real-time market regimes across all 64 setups and automatically adapts the bot's strategy, symbol, tick duration, and safe martingale steps for maximum statistical win-rate.
+                        </p>
+                        {aiAutoPilot && (
+                           <div className="mt-3 flex items-center gap-2 text-xs font-mono text-emerald-400 bg-emerald-950/30 border border-emerald-500/30 px-3 py-1.5 rounded-xl w-fit">
+                              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+                              <span>Auto-syncing to Gemini AI's Current Best Live Edge</span>
+                           </div>
+                        )}
+                     </div>
+                  </div>
+
+                  {/* Toggle Switch */}
+                  <div className="flex items-center gap-3 shrink-0 self-end sm:self-center">
+                     <span className="text-xs font-bold font-mono uppercase text-[#C5A059]">
+                       {aiAutoPilot ? 'AI Active' : 'Manual'}
+                     </span>
+                     <button
+                        onClick={() => handleToggleAiAutoPilot(!aiAutoPilot)}
+                        className={`w-14 h-8 flex items-center rounded-full p-1 cursor-pointer transition-colors duration-300 border ${
+                           aiAutoPilot 
+                             ? 'bg-emerald-500 border-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.5)]' 
+                             : 'bg-slate-800 border-slate-700'
+                        }`}
+                        title="Toggle AI Autonomous Auto-Pilot"
+                     >
+                        <motion.div 
+                           className="bg-white w-6 h-6 rounded-full shadow-md"
+                           animate={{ x: aiAutoPilot ? 24 : 0 }}
+                           transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                        />
+                     </button>
+                  </div>
+               </div>
+            </div>
             
             <div className="bg-[rgba(18,18,22,0.85)] border border-[rgba(212,175,55,0.25)] rounded-3xl p-6 backdrop-blur-md shadow-[0_10px_30px_rgba(0,0,0,0.5)]">
               <label className="block text-[#C5A059] text-[10px] uppercase tracking-widest font-bold mb-4">Active Strategy Core</label>
@@ -1209,76 +1361,122 @@ export default function Dashboard() {
              </div>
 
              {/* AI Optimal Setup Recommendation / Current Best Live Edge */}
-             <div className="bg-gradient-to-r from-[rgba(212,175,55,0.16)] via-[rgba(18,18,22,0.95)] to-[rgba(34,197,94,0.12)] border-2 border-[#D4AF37]/40 rounded-3xl p-5 sm:p-6 backdrop-blur-xl shadow-[0_15px_35px_rgba(212,175,55,0.12)] flex flex-col lg:flex-row items-center justify-between gap-6 relative overflow-hidden">
-                <div className="flex items-start gap-4 z-10 w-full lg:w-auto">
-                   <div className="p-3.5 rounded-2xl bg-gradient-to-br from-[#D4AF37] to-[#B38728] text-[#0B0B0E] shadow-[0_0_20px_rgba(212,175,55,0.5)] shrink-0">
-                      <Crown className="w-6 h-6 sm:w-7 sm:h-7 drop-shadow-md"/>
-                   </div>
-                   <div className="flex flex-col">
-                      <div className="flex items-center gap-2 flex-wrap">
-                         <span className="text-[10px] font-sans font-extrabold uppercase tracking-widest px-2.5 py-0.5 rounded-full bg-[#FFD700]/20 text-[#FFD700] border border-[#FFD700]/40">
-                           👑 CURRENT BEST LIVE EDGE
+              <div className="bg-gradient-to-br from-[rgba(212,175,55,0.18)] via-[rgba(18,18,22,0.96)] to-[rgba(34,197,94,0.12)] border-2 border-[#D4AF37]/45 rounded-3xl p-6 sm:p-7 backdrop-blur-2xl shadow-[0_20px_50px_rgba(0,0,0,0.6)] flex flex-col gap-6 relative overflow-hidden">
+                 {/* Background Accent Glow */}
+                 <div className="absolute -top-24 -right-24 w-72 h-72 bg-[#D4AF37]/10 rounded-full blur-3xl pointer-events-none" />
+                 <div className="absolute -bottom-24 -left-24 w-72 h-72 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+
+                 {/* Top Header Bar */}
+                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#D4AF37]/20 pb-4 relative z-10">
+                    <div className="flex items-center gap-2.5 flex-wrap">
+                       <div className="p-2.5 rounded-xl bg-gradient-to-br from-[#D4AF37] to-[#B38728] text-[#0B0B0E] shadow-[0_0_15px_rgba(212,175,55,0.5)] shrink-0">
+                          <Crown className="w-5 h-5 drop-shadow-md"/>
+                       </div>
+                       <span className="text-[11px] font-sans font-extrabold uppercase tracking-widest px-3 py-1 rounded-full bg-[#FFD700]/20 text-[#FFD700] border border-[#FFD700]/40">
+                         👑 CURRENT BEST LIVE EDGE
+                       </span>
+                       <span className="text-[10px] font-sans font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 flex items-center gap-1.5">
+                         <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
+                         🤖 {currentBestEdge?.ai_model || 'Gemini 3.8 AI Brain'}
+                       </span>
+                       {currentBestEdge?.market_regime && (
+                         <span className="text-[10px] font-sans font-semibold tracking-wider px-2.5 py-0.5 rounded-full bg-blue-500/15 text-blue-300 border border-blue-500/30">
+                           ⚡ {currentBestEdge.market_regime}
                          </span>
-                         <span className="text-[10px] text-slate-400 font-mono">
-                           AI Confidence: <strong className="text-white">{bestSetup?.ai_score?.toFixed(1) || '---'}/100</strong>
-                         </span>
-                      </div>
-                      <h3 className="text-base sm:text-lg font-serif font-bold text-white mt-1 flex items-center gap-2 flex-wrap">
-                         <span>{bestSetup?.strategy_name || "Evaluating Live Market Physics..."}</span>
-                         {bestSetup?.symbol && (
-                           <span className="text-sm font-sans text-[#FFD700] font-normal">
-                             on {bestSetup?.symbol_name} ({bestSetup?.symbol})
-                           </span>
-                         )}
-                      </h3>
-                      <p className="text-xs text-slate-300 mt-1 max-w-2xl leading-relaxed">
-                        Evaluated across win rate consistency, verified sample size ({bestSetup?.total_trades || 0} tests), minimal loss streaks, and active signal momentum.
-                      </p>
-                   </div>
-                </div>
+                       )}
+                    </div>
 
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 w-full lg:w-auto z-10 shrink-0">
-                   <div className="bg-black/50 border border-[#D4AF37]/25 rounded-2xl p-3 text-center">
-                      <div className="text-[8px] text-slate-400 uppercase tracking-wider">Win Rate</div>
-                      <div className="text-base font-mono font-bold text-green-400 mt-0.5">{bestSetup?.win_rate || 0}%</div>
-                      <div className="text-[8px] text-slate-500 font-mono">{bestSetup?.wins || 0}W / {bestSetup?.losses || 0}L</div>
-                   </div>
-                   <div className="bg-black/50 border border-[#D4AF37]/25 rounded-2xl p-3 text-center">
-                      <div className="text-[8px] text-slate-400 uppercase tracking-wider">Optimal Horizon</div>
-                      <div className="text-base font-mono font-bold text-[#FFD700] mt-0.5">{bestSetup?.best_tick || evaluationTicks} Ticks</div>
-                      <div className="text-[8px] text-green-400 font-mono">{bestSetup?.best_tick_win_rate || bestSetup?.win_rate || 0}% Sweet Spot</div>
-                   </div>
-                   <div className="bg-black/50 border border-[#D4AF37]/25 rounded-2xl p-3 text-center">
-                      <div className="text-[8px] text-slate-400 uppercase tracking-wider">Max Loss Streak</div>
-                      <div className="text-base font-mono font-bold text-yellow-400 mt-0.5">{bestSetup?.max_loss_streak || 0} Losses</div>
-                      <div className="text-[8px] text-slate-400 font-mono">Breaker: {(bestSetup?.max_loss_streak || 0) + 1}</div>
-                   </div>
-                   <div className="bg-black/50 border border-[#D4AF37]/25 rounded-2xl p-3 text-center">
-                      <div className="text-[8px] text-slate-400 uppercase tracking-wider">Safe Martingale</div>
-                      <div className="text-base font-mono font-bold text-blue-400 mt-0.5">{bestSetup?.recommended_martingale || 2} Steps</div>
-                      <div className="text-[8px] text-slate-400 font-mono">Multiplier: 2.25x</div>
-                   </div>
-                </div>
+                    <div className="flex items-center gap-3 shrink-0 self-start sm:self-auto">
+                       <div className="bg-black/60 border border-[#D4AF37]/35 rounded-xl px-3 py-1.5 text-center">
+                          <div className="text-[8px] text-slate-400 uppercase tracking-widest">AI Confidence</div>
+                          <div className="text-sm font-mono font-extrabold text-[#FFD700]">
+                            {currentBestEdge?.ai_score?.toFixed(1) || '---'}/100
+                          </div>
+                       </div>
+                       <button
+                         onClick={handleConsultGeminiAi}
+                         disabled={isConsultingAi}
+                         className="px-3.5 py-2 rounded-xl text-[10px] font-bold uppercase tracking-wider bg-black/60 hover:bg-[#D4AF37]/20 border border-[#D4AF37]/40 text-[#FFD700] transition-all flex items-center gap-2 cursor-pointer shadow-md disabled:opacity-50"
+                         title="Force fresh Gemini AI deep quantitative evaluation"
+                       >
+                         <Sparkles className={`w-3.5 h-3.5 ${isConsultingAi ? 'animate-spin text-[#FFD700]' : 'text-yellow-400'}`} />
+                         <span>{isConsultingAi ? 'AI THINKING...' : 'AI CONSULT'}</span>
+                       </button>
+                    </div>
+                 </div>
 
-                <div className="w-full lg:w-auto z-10 shrink-0">
-                   <button
-                     onClick={() => bestSetup && handleDeployLabStrategy(bestSetup.strategy, bestSetup.symbol, bestSetup.recommended_martingale, bestSetup.best_tick)}
-                     disabled={!bestSetup || (strategyCore === bestSetup.strategy && activeSymbol === bestSetup.symbol)}
-                     className={`w-full lg:w-auto px-5 py-3 rounded-2xl text-xs font-bold uppercase tracking-widest transition-all flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(212,175,55,0.35)] ${
-                       (strategyCore === bestSetup?.strategy && activeSymbol === bestSetup?.symbol)
-                         ? 'bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700'
-                         : 'bg-gradient-to-r from-[#D4AF37] via-[#FFD700] to-[#E5C158] text-[#0B0B0E] hover:scale-105 active:scale-95 cursor-pointer font-extrabold'
-                     }`}
-                   >
-                     <Zap className="w-4 h-4 fill-current"/>
-                     {(strategyCore === bestSetup?.strategy && activeSymbol === bestSetup?.symbol)
-                       ? 'CURRENTLY ACTIVE IN BOT'
-                       : '⚡ AUTO-DEPLOY BEST SETUP NOW'}
-                   </button>
-                </div>
-             </div>
+                 {/* Middle: Spacious Strategy Title & Reasoning */}
+                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center relative z-10">
+                    <div className="lg:col-span-7 flex flex-col gap-2">
+                       <h3 className="text-xl sm:text-2xl md:text-3xl font-serif font-extrabold text-white tracking-wide leading-snug">
+                          {currentBestEdge?.strategy_name || "Evaluating Live Market Physics..."}
+                       </h3>
+                       <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-xs sm:text-sm font-bold text-[#FFD700] bg-black/40 px-2.5 py-1 rounded-lg border border-[#D4AF37]/25">
+                            Target Market: {currentBestEdge?.symbol_name || currentBestEdge?.symbol} ({currentBestEdge?.symbol})
+                          </span>
+                       </div>
+                       <p className="text-xs sm:text-sm text-slate-300 mt-1 leading-relaxed">
+                          {currentBestEdge?.reasoning || `Evaluated across verified sample size (${currentBestEdge?.total_trades || 0} tests), win rate consistency, minimal loss streak protection, and active signal momentum.`}
+                       </p>
+                    </div>
 
-             {/* Filter & Search Bar */}
+                    {/* Deploy Button Box */}
+                    <div className="lg:col-span-5 flex flex-col justify-center gap-2">
+                       <button
+                         onClick={() => currentBestEdge && handleDeployLabStrategy(currentBestEdge.strategy, currentBestEdge.symbol, currentBestEdge.recommended_martingale, currentBestEdge.best_tick)}
+                         disabled={!currentBestEdge || (strategyCore === currentBestEdge.strategy && activeSymbol === currentBestEdge.symbol)}
+                         className={`w-full py-4 px-6 rounded-2xl text-xs sm:text-sm font-extrabold uppercase tracking-widest transition-all duration-300 flex items-center justify-center gap-2.5 shadow-[0_0_25px_rgba(212,175,55,0.4)] ${
+                           (strategyCore === currentBestEdge?.strategy && activeSymbol === currentBestEdge?.symbol)
+                             ? 'bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700 shadow-none'
+                             : 'bg-gradient-to-r from-[#D4AF37] via-[#FFD700] to-[#E5C158] text-[#0B0B0E] hover:scale-[1.02] active:scale-[0.98] cursor-pointer'
+                         }`}
+                       >
+                         <Zap className="w-4 h-4 fill-current"/>
+                         {(strategyCore === currentBestEdge?.strategy && activeSymbol === currentBestEdge?.symbol)
+                           ? 'CURRENTLY ACTIVE IN BOT'
+                           : '⚡ AUTO-DEPLOY BEST SETUP NOW'}
+                       </button>
+
+                       {aiAutoPilot ? (
+                          <div className="flex items-center justify-center gap-2 py-1 px-2 text-[10px] font-mono text-emerald-400 bg-emerald-950/40 border border-emerald-500/30 rounded-xl">
+                             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
+                             <span>AUTONOMOUS MODE: Live Bot is actively executing this edge</span>
+                          </div>
+                       ) : (
+                          <div className="text-center text-[10px] text-slate-400">
+                             Click to deploy this optimal edge directly into your active bot settings
+                          </div>
+                       )}
+                    </div>
+                 </div>
+
+                 {/* Bottom: 4 Sleek Quantitative Metric Pillars */}
+                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 relative z-10">
+                    <div className="bg-black/60 border border-[#D4AF37]/30 rounded-2xl p-3.5 text-center shadow-inner">
+                       <div className="text-[9px] text-slate-400 uppercase tracking-widest font-semibold">Win Rate</div>
+                       <div className="text-xl sm:text-2xl font-mono font-extrabold text-green-400 mt-1">{currentBestEdge?.win_rate || 0}%</div>
+                       <div className="text-[9px] text-slate-500 font-mono mt-0.5">{currentBestEdge?.wins || 0}W / {currentBestEdge?.losses || 0}L</div>
+                    </div>
+                    <div className="bg-black/60 border border-[#D4AF37]/30 rounded-2xl p-3.5 text-center shadow-inner">
+                       <div className="text-[9px] text-slate-400 uppercase tracking-widest font-semibold">Optimal Horizon</div>
+                       <div className="text-xl sm:text-2xl font-mono font-extrabold text-[#FFD700] mt-1">{currentBestEdge?.best_tick || evaluationTicks} Ticks</div>
+                       <div className="text-[9px] text-green-400 font-mono mt-0.5">{currentBestEdge?.best_tick_win_rate || currentBestEdge?.win_rate || 0}% Sweet Spot</div>
+                    </div>
+                    <div className="bg-black/60 border border-[#D4AF37]/30 rounded-2xl p-3.5 text-center shadow-inner">
+                       <div className="text-[9px] text-slate-400 uppercase tracking-widest font-semibold">Max Loss Streak</div>
+                       <div className="text-xl sm:text-2xl font-mono font-extrabold text-yellow-400 mt-1">{currentBestEdge?.max_loss_streak || 0} Losses</div>
+                       <div className="text-[9px] text-slate-400 font-mono mt-0.5">Circuit Breaker: {(currentBestEdge?.max_loss_streak || 0) + 1}</div>
+                    </div>
+                    <div className="bg-black/60 border border-[#D4AF37]/30 rounded-2xl p-3.5 text-center shadow-inner">
+                       <div className="text-[9px] text-slate-400 uppercase tracking-widest font-semibold">Safe Martingale</div>
+                       <div className="text-xl sm:text-2xl font-mono font-extrabold text-blue-400 mt-1">{currentBestEdge?.recommended_martingale || 2} Steps</div>
+                       <div className="text-[9px] text-slate-400 font-mono mt-0.5">Multiplier: 2.25x</div>
+                    </div>
+                 </div>
+              </div>
+
+              {/* Filter & Search Bar */}
              <div className="bg-[rgba(18,18,22,0.85)] border border-[rgba(212,175,55,0.25)] rounded-2xl p-4 backdrop-blur-md flex flex-wrap items-center justify-between gap-4">
                 <div className="flex flex-wrap items-center gap-3">
                    <div className="flex flex-col gap-1">
