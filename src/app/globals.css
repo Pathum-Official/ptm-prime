@@ -23,3 +23,19 @@ body {
   background-color: #020617; /* slate-950 */
   color: white;
 }
+
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="month"]::-webkit-calendar-picker-indicator,
+input[type="time"]::-webkit-calendar-picker-indicator {
+  filter: invert(78%) sepia(85%) saturate(1500%) hue-rotate(5deg) brightness(120%) contrast(105%) !important;
+  cursor: pointer;
+  opacity: 0.95;
+  transition: transform 0.15s ease, opacity 0.15s ease;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator:hover,
+input[type="month"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+  transform: scale(1.15);
+}
+

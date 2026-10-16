@@ -3,7 +3,7 @@ import { API_URL, WS_URL } from '../config';
 
 
 import { useState, useEffect } from "react";
-import { Activity, ShieldAlert, Target, TrendingUp, Wallet, Power, Settings, LogOut, ChevronDown, ChevronUp, CheckCircle2, History, Banknote } from "lucide-react";
+import { Activity, ShieldAlert, Target, TrendingUp, Wallet, Power, Settings, LogOut, ChevronDown, ChevronUp, CheckCircle2, History, Banknote, Cpu, Flame, Zap, RefreshCw } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { Logo } from "@/components/Logo";
@@ -12,7 +12,7 @@ export default function Dashboard() {
   const router = useRouter();
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [isRunning, setIsRunning] = useState(false);
-  const [activeTab, setActiveTab] = useState<'trade' | 'strategies' | 'settings' | 'money' | 'history'>('trade');
+  const [activeTab, setActiveTab] = useState<'trade' | 'strategies' | 'settings' | 'money' | 'history' | 'analytics'>('trade');
   
   // UI State
   const [isTerminalExpanded, setIsTerminalExpanded] = useState(false);
@@ -123,6 +123,81 @@ export default function Dashboard() {
   const [activeSymbol, setActiveSymbol] = useState("R_25");
   const [tickDuration, setTickDuration] = useState(5);
   const [accountType, setAccountType] = useState("demo");
+
+  // Strategy Matrix Lab State
+  const [matrixData, setMatrixData] = useState<any>(null);
+  const [matrixFilterStrategy, setMatrixFilterStrategy] = useState<string>("all");
+  const [matrixFilterSymbol, setMatrixFilterSymbol] = useState<string>("all");
+  const [matrixSortBy, setMatrixSortBy] = useState<'win_rate' | 'loss_streak' | 'trades'>('win_rate');
+  const [isFetchingMatrix, setIsFetchingMatrix] = useState(false);
+
+  const fetchMatrixData = async () => {
+    try {
+      setIsFetchingMatrix(true);
+      const res = await fetch(`${API_URL}/api/v1/analytics/matrix`, {
+        headers: { "ngrok-skip-browser-warning": "true" }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setMatrixData(data);
+      }
+    } catch (e) {
+    } finally {
+      setIsFetchingMatrix(false);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === 'analytics') {
+      fetchMatrixData();
+      const interval = setInterval(fetchMatrixData, 4000);
+      return () => clearInterval(interval);
+    }
+  }, [activeTab]);
+
+  const handleDeployLabStrategy = async (strategyCoreToDeploy: string, symbolToDeploy: string, recommendedMartingale: number) => {
+    try {
+      setStrategyCore(strategyCoreToDeploy);
+      setActiveSymbol(symbolToDeploy);
+      setMaxMartingaleSteps(recommendedMartingale);
+
+      const res = await fetch(`${API_URL}/api/v1/analytics/deploy`, {
+        method: "POST",
+        headers: {
+          "ngrok-skip-browser-warning": "true",
+          "Authorization": `Bearer ${localStorage.getItem("token")}`,
+          "Content-Type": "application/json"
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          strategy_core: strategyCoreToDeploy,
+          active_symbol: symbolToDeploy,
+          max_martingale_steps: recommendedMartingale
+        })
+      });
+      if (res.ok) {
+        showToast(`Deployed ${strategyCoreToDeploy} on ${symbolToDeploy}! Martingale set to ${recommendedMartingale}`, "success");
+        playTTS(`Strategy deployed. System configured for ${symbolToDeploy}.`);
+      } else {
+        showToast("Failed to deploy strategy to live bot.", "error");
+      }
+    } catch (e) {
+      showToast("API unreachable", "error");
+    }
+  };
+
+  const filteredLeaderboard = (matrixData?.leaderboard || [])
+    .filter((item: any) => {
+      if (matrixFilterStrategy !== "all" && item.strategy !== matrixFilterStrategy) return false;
+      if (matrixFilterSymbol !== "all" && item.symbol !== matrixFilterSymbol) return false;
+      return true;
+    })
+    .sort((a: any, b: any) => {
+      if (matrixSortBy === 'win_rate') return b.win_rate - a.win_rate;
+      if (matrixSortBy === 'loss_streak') return a.max_loss_streak - b.max_loss_streak;
+      if (matrixSortBy === 'trades') return b.total_trades - a.total_trades;
+      return 0;
+    });
 
   // Load account type from localStorage on mount
   useEffect(() => {
@@ -658,6 +733,7 @@ export default function Dashboard() {
             <div className="bg-[rgba(18,18,22,0.85)] border border-[rgba(212,175,55,0.25)] rounded-3xl p-6 backdrop-blur-md shadow-[0_10px_30px_rgba(0,0,0,0.5)]">
               <label className="block text-[#C5A059] text-[10px] uppercase tracking-widest font-bold mb-4">Active Strategy Core</label>
               <select value={strategyCore} onChange={e => { setStrategyCore(e.target.value); playTTS("Strategy core selected."); }} className="w-full bg-[#0B0B0E] border border-[#D4AF37]/30 rounded-xl px-4 py-3 text-[#FFD700] outline-none focus:border-[#FFD700]">
+                <option value="trend_momentum_rider">Trend Momentum Rider (EMA 7/21 Micro-Trend + RSI Flow)</option>
                 <option value="apex_momentum">Apex Momentum Engine (Tick Velocity + Exhaustion)</option>
                 <option value="rubber_band">Rubber-Band Spike Reversion (Extreme Over-extension)</option>
                 <option value="vietnam_smart_scan">Advanced Vietnam Logic (Deep Market Scan & RSI)</option>
@@ -859,7 +935,7 @@ export default function Dashboard() {
                <div className="flex flex-col sm:flex-row gap-4 items-end">
                  <div className="flex flex-col gap-1">
                    <label className="text-[9px] text-[#C5A059] font-bold uppercase tracking-widest">Analysis View</label>
-                   <select value={historyView} onChange={e => setHistoryView(e.target.value as any)} className="bg-[#0B0B0E] border border-[#D4AF37]/30 text-[#FFD700] rounded-xl px-3 py-2 text-xs outline-none">
+                   <select value={historyView} onChange={e => setHistoryView(e.target.value as any)} className="bg-[#0B0B0E] border border-[#D4AF37]/30 text-[#FFD700] rounded-xl px-3 py-2 text-xs outline-none [color-scheme:dark] cursor-pointer">
                      <option value="detailed">Detailed Trades (Single Day)</option>
                      <option value="hourly">Hourly Summary (Single Day)</option>
                      <option value="daily">Daily Summary (Single Month)</option>
@@ -967,26 +1043,294 @@ export default function Dashboard() {
              </div>
           </div>
         )}
+      
+        {activeTab === 'analytics' && (
+          <div className="flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+             {/* Header */}
+             <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-[#D4AF37]/20 pb-4 gap-4">
+                <div>
+                   <h2 className="text-xl font-serif text-[#FFD700] tracking-widest flex items-center gap-3">
+                     <Cpu className="w-6 h-6 text-[#FFD700] animate-pulse"/> STRATEGY MATRIX & FORWARD SIMULATION LAB
+                   </h2>
+                   <p className="text-xs text-slate-400 mt-1">
+                     Multi-market forward paper simulation (Zero balance risk). Evaluating live ticks 5 steps ahead.
+                   </p>
+                </div>
+                <div className="flex items-center gap-3">
+                   <div className="flex items-center gap-2 bg-[#22c55e]/10 border border-[#22c55e]/30 px-3 py-1.5 rounded-full">
+                     <span className="w-2 h-2 rounded-full bg-green-500 animate-ping"></span>
+                     <span className="text-[10px] font-bold text-green-400 uppercase tracking-widest">Forward Sim Live</span>
+                   </div>
+                   <button 
+                     onClick={fetchMatrixData} 
+                     disabled={isFetchingMatrix}
+                     className="px-3 py-1.5 border border-[#D4AF37] text-[#FFD700] rounded-xl text-xs uppercase tracking-widest hover:bg-[#D4AF37]/10 flex items-center gap-2 transition-all cursor-pointer"
+                   >
+                     <RefreshCw className={`w-3.5 h-3.5 ${isFetchingMatrix ? 'animate-spin' : ''}`}/> Sync
+                   </button>
+                </div>
+             </div>
+
+             {/* Top Stat Boxes */}
+             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <StatBox 
+                  title="Lab Win Rate" 
+                  value={`${matrixData?.summary?.overall_win_rate || '---'}%`} 
+                  color="text-[#FFD700]" 
+                  icon={<TrendingUp className="w-4 h-4"/>} 
+                  glow={true} 
+                />
+                <StatBox 
+                  title="Top Winning Strategy" 
+                  value={<span className="text-xs font-sans font-bold text-green-400 truncate block">{matrixData?.summary?.top_strategy || 'Analyzing...'}</span>} 
+                  color="text-green-400" 
+                  icon={<Flame className="w-4 h-4 text-orange-400"/>} 
+                />
+                <StatBox 
+                  title="Safest Martingale Index" 
+                  value={<span className="text-xs font-sans font-bold text-blue-400 truncate block">{matrixData?.summary?.safest_strategy || 'Analyzing...'}</span>} 
+                  color="text-blue-400" 
+                  icon={<ShieldAlert className="w-4 h-4 text-blue-400"/>} 
+                />
+                <StatBox 
+                  title="Simulated Signals Evaluated" 
+                  value={matrixData?.summary?.total_simulations?.toString() || '---'} 
+                  color="text-white" 
+                  icon={<Zap className="w-4 h-4 text-yellow-400"/>} 
+                />
+             </div>
+
+             {/* Risk & Martingale Advice Banner */}
+             <div className="bg-gradient-to-r from-[rgba(212,175,55,0.12)] via-[rgba(18,18,22,0.9)] to-[rgba(34,197,94,0.1)] border border-[#D4AF37]/30 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div className="flex items-start gap-3">
+                   <div className="p-2 rounded-xl bg-[#D4AF37]/20 text-[#FFD700] mt-0.5">
+                     <Target className="w-5 h-5"/>
+                   </div>
+                   <div>
+                     <h4 className="text-xs font-bold text-[#FFD700] uppercase tracking-wider">Martingale Safety Advisor</h4>
+                     <p className="text-[11px] text-slate-300 mt-0.5">
+                       The table below reveals the <strong>Max Consecutive Loss Streak</strong> recorded during live market conditions. 
+                       Setting your Circuit Breaker to <span className="text-[#FFD700] font-bold">Max Loss + 1</span> protects your account from deep drawdown spikes.
+                     </p>
+                   </div>
+                </div>
+                <div className="text-[10px] text-slate-400 bg-black/40 px-3 py-1.5 rounded-lg border border-slate-800 whitespace-nowrap">
+                   Auto-evaluation: <strong className="text-green-400">5 Ticks Forward</strong>
+                </div>
+             </div>
+
+             {/* Filter & Search Bar */}
+             <div className="bg-[rgba(18,18,22,0.85)] border border-[rgba(212,175,55,0.25)] rounded-2xl p-4 backdrop-blur-md flex flex-wrap items-center justify-between gap-4">
+                <div className="flex flex-wrap items-center gap-3">
+                   <div className="flex flex-col gap-1">
+                     <label className="text-[9px] text-[#C5A059] font-bold uppercase tracking-widest">Filter Strategy</label>
+                     <select 
+                       value={matrixFilterStrategy} 
+                       onChange={e => setMatrixFilterStrategy(e.target.value)} 
+                       className="bg-[#0B0B0E] border border-[#D4AF37]/30 text-[#FFD700] rounded-xl px-3 py-1.5 text-xs outline-none"
+                     >
+                        <option value="all">All Strategies</option>
+                        <option value="trend_momentum_rider">Trend Momentum Rider</option>
+                        <option value="low_vol_rsi_bb">Low-Vol RSI-BB</option>
+                        <option value="vietnam_smart_scan">Vietnam Smart Scan</option>
+                        <option value="apex_momentum">Apex Momentum</option>
+                        <option value="rubber_band">Rubber-Band Reversion</option>
+                     </select>
+                   </div>
+
+                   <div className="flex flex-col gap-1">
+                     <label className="text-[9px] text-[#C5A059] font-bold uppercase tracking-widest">Filter Market</label>
+                     <select 
+                       value={matrixFilterSymbol} 
+                       onChange={e => setMatrixFilterSymbol(e.target.value)} 
+                       className="bg-[#0B0B0E] border border-[#D4AF37]/30 text-[#FFD700] rounded-xl px-3 py-1.5 text-xs outline-none"
+                     >
+                        <option value="all">All Markets</option>
+                        <option value="R_25">Volatility 25 Index</option>
+                        <option value="1HZ10V">Volatility 10 (1s) Index</option>
+                        <option value="1HZ100V">Volatility 100 (1s) Index</option>
+                        <option value="R_100">Volatility 100 Index</option>
+                        <option value="R_10">Volatility 10 Index</option>
+                        <option value="1HZ25V">Volatility 25 (1s) Index</option>
+                        <option value="1HZ50V">Volatility 50 (1s) Index</option>
+                        <option value="1HZ75V">Volatility 75 (1s) Index</option>
+                     </select>
+                   </div>
+
+                   <div className="flex flex-col gap-1">
+                     <label className="text-[9px] text-[#C5A059] font-bold uppercase tracking-widest">Sort By</label>
+                     <select 
+                       value={matrixSortBy} 
+                       onChange={e => setMatrixSortBy(e.target.value as any)} 
+                       className="bg-[#0B0B0E] border border-[#D4AF37]/30 text-[#FFD700] rounded-xl px-3 py-1.5 text-xs outline-none"
+                     >
+                        <option value="win_rate">Highest Win Rate %</option>
+                        <option value="loss_streak">Lowest Max Loss Streak (Safest)</option>
+                        <option value="trades">Most Trades Tested</option>
+                     </select>
+                   </div>
+                </div>
+
+                <div className="text-[10px] text-[#C5A059] font-mono">
+                   Showing {filteredLeaderboard.length} Strategy/Market Matrix Pairs
+                </div>
+             </div>
+
+             {/* Strategy Performance Leaderboard */}
+             <div className="bg-[rgba(18,18,22,0.85)] border border-[rgba(212,175,55,0.25)] rounded-3xl p-6 backdrop-blur-md shadow-[0_10px_30px_rgba(0,0,0,0.5)] overflow-x-auto">
+                <table className="w-full text-left border-collapse min-w-[700px]">
+                   <thead>
+                     <tr className="border-b border-[#D4AF37]/20 text-[#C5A059] text-[10px] uppercase tracking-widest">
+                       <th className="py-4 font-bold">Strategy & Market</th>
+                       <th className="py-4 font-bold text-center">Type</th>
+                       <th className="py-4 font-bold text-center">Win Rate</th>
+                       <th className="py-4 font-bold text-center">Simulated W/L</th>
+                       <th className="py-4 font-bold text-center">Max Loss Streak</th>
+                       <th className="py-4 font-bold text-center">Safe Martingale</th>
+                       <th className="py-4 font-bold text-right">Quick Deploy</th>
+                     </tr>
+                   </thead>
+                   <tbody className="text-sm font-mono text-slate-300">
+                     {filteredLeaderboard.length === 0 ? (
+                       <tr><td colSpan={7} className="py-8 text-center text-slate-500">No strategy pairs matching current filter.</td></tr>
+                     ) : (
+                       filteredLeaderboard.map((item: any, i: number) => {
+                         const isCurrentActive = (strategyCore === item.strategy && activeSymbol === item.symbol);
+                         return (
+                           <tr key={i} className="border-b border-slate-800/50 hover:bg-white/5 transition-colors">
+                             <td className="py-3.5">
+                               <div className="flex flex-col">
+                                 <div className="flex items-center gap-2">
+                                   <span className="font-bold text-white text-xs">{item.strategy_name}</span>
+                                   <span className="px-1.5 py-0.5 rounded text-[8px] font-sans font-bold uppercase tracking-wider bg-[#D4AF37]/15 text-[#FFD700] border border-[#D4AF37]/30">
+                                     {item.badge}
+                                   </span>
+                                   {isCurrentActive && (
+                                     <span className="px-1.5 py-0.5 rounded text-[8px] font-sans font-bold uppercase bg-green-500/20 text-green-400 border border-green-500/40">
+                                       LIVE IN BOT
+                                     </span>
+                                   )}
+                                 </div>
+                                 <span className="text-[10px] text-[#C5A059] mt-0.5 font-sans font-semibold">{item.symbol_name} ({item.symbol})</span>
+                               </div>
+                             </td>
+                             <td className="py-3.5 text-center text-[10px] font-sans text-slate-400">
+                               {item.strategy_type}
+                             </td>
+                             <td className="py-3.5 text-center">
+                               <div className="flex flex-col items-center gap-1">
+                                 <span className={`font-bold text-xs ${item.win_rate >= 65 ? 'text-green-400' : item.win_rate >= 55 ? 'text-[#FFD700]' : 'text-slate-400'}`}>
+                                   {item.win_rate}%
+                                 </span>
+                                 <div className="w-16 h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                                   <div 
+                                     style={{ width: `${Math.min(item.win_rate, 100)}%` }} 
+                                     className={`h-full ${item.win_rate >= 65 ? 'bg-green-500' : item.win_rate >= 55 ? 'bg-[#FFD700]' : 'bg-red-500'}`}
+                                   />
+                                 </div>
+                               </div>
+                             </td>
+                             <td className="py-3.5 text-center text-xs">
+                               <span className="text-green-400 font-bold">{item.wins}</span> / <span className="text-red-400">{item.losses}</span>
+                               <span className="text-slate-500 text-[10px] block font-sans font-normal">({item.total_trades} tests)</span>
+                             </td>
+                             <td className="py-3.5 text-center">
+                               <span className={`px-2 py-0.5 rounded text-[10px] font-sans font-bold uppercase ${
+                                 item.max_loss_streak <= 2 ? 'bg-green-500/20 text-green-400 border border-green-500/30' :
+                                 item.max_loss_streak <= 3 ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30' :
+                                 'bg-red-500/20 text-red-400 border border-red-500/30'
+                               }`}>
+                                 {item.max_loss_streak} Losses Max
+                               </span>
+                             </td>
+                             <td className="py-3.5 text-center">
+                               <span className="text-[#FFD700] font-bold text-xs">
+                                 {item.recommended_martingale} Steps
+                               </span>
+                             </td>
+                             <td className="py-3.5 text-right">
+                               <button 
+                                 onClick={() => handleDeployLabStrategy(item.strategy, item.symbol, item.recommended_martingale)}
+                                 disabled={isCurrentActive}
+                                 className={`px-3 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 ml-auto ${
+                                   isCurrentActive 
+                                     ? 'bg-slate-800 text-slate-500 cursor-not-allowed'
+                                     : 'bg-gradient-to-r from-[#D4AF37] to-[#FFD700] text-[#0B0B0E] hover:shadow-[0_0_15px_rgba(212,175,55,0.4)] active:scale-95 cursor-pointer'
+                                 }`}
+                               >
+                                 <Zap className="w-3 h-3"/> {isCurrentActive ? 'ACTIVE' : 'DEPLOY'}
+                               </button>
+                             </td>
+                           </tr>
+                         );
+                       })
+                     )}
+                   </tbody>
+                </table>
+             </div>
+
+             {/* Live Forward Simulation Feed */}
+             <div className="bg-[rgba(18,18,22,0.85)] border border-[rgba(212,175,55,0.25)] rounded-3xl p-6 backdrop-blur-md shadow-[0_10px_30px_rgba(0,0,0,0.5)]">
+                <div className="flex items-center justify-between mb-4 border-b border-slate-800 pb-3">
+                   <h3 className="text-[#C5A059] text-[10px] uppercase tracking-widest font-bold flex items-center gap-2">
+                     <Activity className="w-4 h-4 text-green-400 animate-pulse"/> Live Forward Simulation Stream (Real-Time 5-Tick Outcomes)
+                   </h3>
+                   <span className="text-[10px] text-slate-500 font-mono">5-Tick Forward Evaluator</span>
+                </div>
+
+                <div className="max-h-72 overflow-y-auto font-mono text-xs flex flex-col gap-2">
+                   {(!matrixData?.recent_feed || matrixData.recent_feed.length === 0) ? (
+                     <div className="py-8 text-center text-slate-600 uppercase tracking-widest">
+                       Listening to public tick stream... evaluating forward outcomes...
+                     </div>
+                   ) : (
+                     matrixData.recent_feed.map((feed: any, idx: number) => (
+                       <div key={idx} className="flex items-center justify-between p-2.5 rounded-xl bg-black/40 border border-slate-800/80 hover:border-[#D4AF37]/30 transition-all">
+                          <div className="flex items-center gap-3">
+                             <span className="text-slate-500 text-[10px]">[{feed.timestamp}]</span>
+                             <span className="text-white font-bold">{feed.strategy_name}</span>
+                             <span className="text-[#C5A059] text-[11px] font-sans">({feed.symbol})</span>
+                             <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold uppercase ${feed.contract_type === 'CALL' ? 'bg-green-500/10 text-green-400' : 'bg-red-500/10 text-red-400'}`}>
+                               {feed.contract_type}
+                             </span>
+                          </div>
+                          <div className="flex items-center gap-4 text-right">
+                             <span className="text-slate-400 text-[11px]">
+                               Entry: {feed.entry_price.toFixed(3)} → Exit: {feed.exit_price.toFixed(3)}
+                             </span>
+                             <span className={`px-2 py-0.5 rounded text-[10px] font-sans font-bold uppercase tracking-wider ${feed.status === 'WIN' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
+                               {feed.status}
+                             </span>
+                          </div>
+                       </div>
+                     ))
+                   )}
+                </div>
+             </div>
+          </div>
+        )}
+
       </main>
 
-      {/* Upgraded Bottom Navigation */}
+            {/* Upgraded Bottom Navigation */}
       <div className="fixed bottom-6 left-0 right-0 z-50 px-4">
-        <div className="max-w-md mx-auto bg-[#121216]/90 backdrop-blur-2xl border border-[#D4AF37]/30 rounded-2xl px-2 py-3 flex justify-around items-center shadow-[0_15px_40px_rgba(0,0,0,0.8)]">
+        <div className="max-w-xl mx-auto bg-[#121216]/90 backdrop-blur-2xl border border-[#D4AF37]/30 rounded-2xl px-2 py-2 flex justify-around items-center shadow-[0_15px_40px_rgba(0,0,0,0.8)]">
           {[
             { id: 'trade', icon: Activity, label: 'Terminal' },
             { id: 'strategies', icon: Target, label: 'Logic' },
             { id: 'money', icon: Banknote, label: 'MM Vault' },
+            { id: 'analytics', icon: Cpu, label: 'Matrix Lab' },
             { id: 'history', icon: History, label: 'History' },
             { id: 'settings', icon: ShieldAlert, label: 'Vault' }
           ].map(tab => (
-            <button key={tab.id} onClick={() => setActiveTab(tab.id as any)} className={`flex flex-col items-center gap-1.5 w-20 py-2 rounded-xl transition-all duration-300 ${activeTab === tab.id ? 'text-[#FFD700] bg-[#D4AF37]/10' : 'text-[#C5A059]/50 hover:text-[#C5A059] hover:bg-white/5'}`}>
-              <tab.icon className={`w-5 h-5 ${activeTab === tab.id ? 'drop-shadow-[0_0_8px_rgba(255,215,0,0.5)]' : ''}`} />
-              <span className="text-[9px] uppercase tracking-widest font-bold">{tab.label}</span>
+            <button key={tab.id} onClick={() => setActiveTab(tab.id as any)} className={`flex flex-col items-center gap-1 w-16 sm:w-20 py-1.5 rounded-xl transition-all duration-300 cursor-pointer ${activeTab === tab.id ? 'text-[#FFD700] bg-[#D4AF37]/10' : 'text-[#C5A059]/50 hover:text-[#C5A059] hover:bg-white/5'}`}>
+              <tab.icon className={`w-4 h-4 sm:w-5 sm:h-5 ${activeTab === tab.id ? 'drop-shadow-[0_0_8px_rgba(255,215,0,0.5)]' : ''}`} />
+              <span className="text-[8px] sm:text-[9px] uppercase tracking-widest font-bold">{tab.label}</span>
             </button>
           ))}
         </div>
       </div>
-      {/* Custom Toast Notifications */}
+{/* Custom Toast Notifications */}
       <AnimatePresence>
         {toast.message && (
           <motion.div initial={{ opacity: 0, y: -20, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -20, scale: 0.95 }} transition={{ duration: 0.3 }}
