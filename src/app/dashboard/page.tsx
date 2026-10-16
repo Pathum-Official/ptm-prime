@@ -201,18 +201,16 @@ export default function Dashboard() {
     }
   };
 
-  const fetchMatrixData = async () => {
+  const fetchMatrixData = async (targetTick?: number) => {
     try {
       setIsFetchingMatrix(true);
-      const res = await fetch(`${API_URL}/api/v1/analytics/matrix`, {
+      const t = targetTick !== undefined ? targetTick : evaluationTicks;
+      const res = await fetch(`${API_URL}/api/v1/analytics/matrix?tick=${t}`, {
         headers: { "ngrok-skip-browser-warning": "true" }
       });
       if (res.ok) {
         const data = await res.json();
         setMatrixData(data);
-        if (data?.summary?.evaluation_ticks) {
-          setEvaluationTicks(data.summary.evaluation_ticks);
-        }
       }
     } catch (e) {
     } finally {
@@ -220,19 +218,36 @@ export default function Dashboard() {
     }
   };
 
+  const handleSelectTick = (ticks: number) => {
+    setEvaluationTicks(ticks);
+    fetchMatrixData(ticks);
+    fetch(`${API_URL}/api/v1/analytics/set-ticks`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "ngrok-skip-browser-warning": "true",
+        "Authorization": `Bearer ${localStorage.getItem("token")}`
+      },
+      credentials: "include",
+      body: JSON.stringify({ ticks })
+    }).catch(() => {});
+  };
+
   useEffect(() => {
     if (activeTab === 'analytics') {
-      fetchMatrixData();
-      const interval = setInterval(fetchMatrixData, 4000);
+      fetchMatrixData(evaluationTicks);
+      const interval = setInterval(() => fetchMatrixData(evaluationTicks), 4000);
       return () => clearInterval(interval);
     }
-  }, [activeTab]);
+  }, [activeTab, evaluationTicks]);
 
-  const handleDeployLabStrategy = async (strategyCoreToDeploy: string, symbolToDeploy: string, recommendedMartingale: number) => {
+  const handleDeployLabStrategy = async (strategyCoreToDeploy: string, symbolToDeploy: string, recommendedMartingale: number, optimalTick?: number) => {
     try {
+      const deployTick = optimalTick || evaluationTicks;
       setStrategyCore(strategyCoreToDeploy);
       setActiveSymbol(symbolToDeploy);
       setMaxMartingaleSteps(recommendedMartingale);
+      setTickDuration(deployTick);
 
       const res = await fetch(`${API_URL}/api/v1/analytics/deploy`, {
         method: "POST",
@@ -245,12 +260,13 @@ export default function Dashboard() {
         body: JSON.stringify({
           strategy_core: strategyCoreToDeploy,
           active_symbol: symbolToDeploy,
-          max_martingale_steps: recommendedMartingale
+          max_martingale_steps: recommendedMartingale,
+          tick_duration: deployTick
         })
       });
       if (res.ok) {
-        showToast(`Deployed ${strategyCoreToDeploy} on ${symbolToDeploy}! Martingale set to ${recommendedMartingale}`, "success");
-        playTTS(`Strategy deployed. System configured for ${symbolToDeploy}.`);
+        showToast(`Deployed ${strategyCoreToDeploy} on ${symbolToDeploy} (${deployTick} Ticks, Martingale: ${recommendedMartingale})!`, "success");
+        playTTS(`Strategy deployed. Configured for ${symbolToDeploy} at ${deployTick} ticks.`);
       } else {
         showToast("Failed to deploy strategy to live bot.", "error");
       }
@@ -811,6 +827,9 @@ export default function Dashboard() {
                 <option value="rubber_band">Rubber-Band Spike Reversion (Extreme Over-extension)</option>
                 <option value="vietnam_smart_scan">Advanced Vietnam Logic (Deep Market Scan & RSI)</option>
                 <option value="low_vol_rsi_bb">Low-Vol RSI-Bollinger Reversal (V10 / 1s Optimized)</option>
+                <option value="macd_kinetic_impulse">MACD Kinetic Impulse (Histogram Expansion Velocity)</option>
+                <option value="heikin_ashi_pulse">Heikin-Ashi Micro-Wave (Noise-Free Synthetic Trend Ride)</option>
+                <option value="breakout_box_scalper">Donchian Breakout Scalper (Channel Squeeze & Expansion)</option>
               </select>
             </div>
 
@@ -1154,31 +1173,30 @@ export default function Dashboard() {
                 </div>
              </div>
 
-             {/* Tick Horizon Selector Bar */}
+             {/* Multi-Tick Simultaneous Forward Evaluation Bar (1 to 10 Ticks) */}
              <div className="bg-[rgba(18,18,22,0.85)] border border-[rgba(212,175,55,0.25)] rounded-2xl p-4 backdrop-blur-md flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div className="flex items-center gap-2.5">
                    <Sliders className="w-4 h-4 text-[#FFD700]"/>
                    <div>
-                     <span className="text-xs font-bold text-white uppercase tracking-wider block">Forward Evaluation Tick Horizon</span>
-                     <span className="text-[10px] text-slate-400">Choose how many ticks ahead to test strategy outcomes (Live Market Physics)</span>
+                     <span className="text-xs font-bold text-white uppercase tracking-wider block">Simultaneous Multi-Tick Analytics (1 - 10 Ticks)</span>
+                     <span className="text-[10px] text-slate-400">Every signal is simulated across all 10 ticks simultaneously. Filter by tick to view instant performance!</span>
                    </div>
                 </div>
-                <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
-                   {[1, 3, 5, 7, 10].map(ticks => {
+                <div className="grid grid-cols-5 sm:flex sm:flex-wrap items-center gap-1.5 sm:gap-2">
+                   {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(ticks => {
                      const isSelected = evaluationTicks === ticks;
                      return (
                        <button
                          key={ticks}
-                         onClick={() => handleSetEvaluationTicks(ticks)}
-                         disabled={isSettingTicks}
-                         className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1 ${
+                         onClick={() => handleSelectTick(ticks)}
+                         className={`px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1 ${
                            isSelected
                              ? 'bg-gradient-to-r from-[#D4AF37] to-[#FFD700] text-[#0B0B0E] shadow-[0_0_12px_rgba(212,175,55,0.5)] scale-105'
                              : 'bg-[#0B0B0E] border border-slate-700 text-slate-300 hover:border-[#D4AF37]/50 hover:text-[#FFD700]'
                          }`}
                        >
-                         <span>{ticks} {ticks === 1 ? 'Tick' : 'Ticks'}</span>
-                         {ticks === 5 && <span className="text-[8px] opacity-75 font-normal">(Default)</span>}
+                         <span>{ticks}T</span>
+                         {ticks === 5 && <span className="text-[8px] opacity-75">★</span>}
                        </button>
                      );
                    })}
@@ -1249,6 +1267,9 @@ export default function Dashboard() {
                         <option value="vietnam_smart_scan">Vietnam Smart Scan</option>
                         <option value="apex_momentum">Apex Momentum</option>
                         <option value="rubber_band">Rubber-Band Reversion</option>
+                        <option value="macd_kinetic_impulse">MACD Kinetic Impulse</option>
+                        <option value="heikin_ashi_pulse">Heikin-Ashi Micro-Wave</option>
+                        <option value="breakout_box_scalper">Donchian Breakout Scalper</option>
                      </select>
                    </div>
 
@@ -1359,8 +1380,17 @@ export default function Dashboard() {
                           />
                         </div>
 
+                        {/* Sweet Spot Optimal Tick Insight */}
+                        <div className="flex items-center justify-between gap-2 text-[10px] bg-black/40 px-3 py-1.5 rounded-xl border border-[#D4AF37]/20">
+                          <div className="flex items-center gap-1.5 text-[#FFD700] font-bold">
+                            <Target className="w-3.5 h-3.5 text-[#FFD700]"/>
+                            <span>Optimal Sweet Spot: {item.best_tick} Ticks</span>
+                          </div>
+                          <span className="text-green-400 font-mono font-bold">{item.best_tick_win_rate}% WR</span>
+                        </div>
+
                         <button 
-                          onClick={() => handleDeployLabStrategy(item.strategy, item.symbol, item.recommended_martingale)}
+                          onClick={() => handleDeployLabStrategy(item.strategy, item.symbol, item.recommended_martingale, item.best_tick)}
                           disabled={isCurrentActive}
                           className={`w-full py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 ${
                             isCurrentActive 
@@ -1368,7 +1398,7 @@ export default function Dashboard() {
                               : 'bg-gradient-to-r from-[#D4AF37] to-[#FFD700] text-[#0B0B0E] hover:shadow-[0_0_15px_rgba(212,175,55,0.4)] active:scale-95 cursor-pointer font-bold'
                           }`}
                         >
-                          <Zap className="w-3.5 h-3.5"/> {isCurrentActive ? 'CURRENTLY ACTIVE IN BOT' : 'DEPLOY THIS STRATEGY'}
+                          <Zap className="w-3.5 h-3.5"/> {isCurrentActive ? 'CURRENTLY ACTIVE IN BOT' : `DEPLOY (OPTIMAL ${item.best_tick}T)`}
                         </button>
                       </div>
                     );
@@ -1411,7 +1441,12 @@ export default function Dashboard() {
                                      </span>
                                    )}
                                  </div>
-                                 <span className="text-[10px] text-[#C5A059] mt-0.5 font-sans font-semibold">{item.symbol_name} ({item.symbol})</span>
+                                 <div className="flex items-center gap-2 mt-0.5">
+                                   <span className="text-[10px] text-[#C5A059] font-sans font-semibold">{item.symbol_name} ({item.symbol})</span>
+                                   <span className="px-1.5 py-0.2 rounded text-[8px] font-sans font-bold bg-[#FFD700]/10 border border-[#FFD700]/25 text-[#FFD700] flex items-center gap-1">
+                                     <Target className="w-2.5 h-2.5"/> Best: {item.best_tick}T ({item.best_tick_win_rate}%)
+                                   </span>
+                                 </div>
                                </div>
                              </td>
                              <td className="py-3.5 text-center text-[10px] font-sans text-slate-400">
@@ -1450,7 +1485,7 @@ export default function Dashboard() {
                              </td>
                              <td className="py-3.5 text-right">
                                <button 
-                                 onClick={() => handleDeployLabStrategy(item.strategy, item.symbol, item.recommended_martingale)}
+                                 onClick={() => handleDeployLabStrategy(item.strategy, item.symbol, item.recommended_martingale, item.best_tick)}
                                  disabled={isCurrentActive}
                                  className={`px-3 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 ml-auto ${
                                    isCurrentActive 
