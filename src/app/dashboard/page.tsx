@@ -131,7 +131,7 @@ export default function Dashboard() {
   const [matrixFilterSymbol, setMatrixFilterSymbol] = useState<string>("all");
   const [matrixSortBy, setMatrixSortBy] = useState<'ai_score' | 'win_rate' | 'loss_streak' | 'trades' | 'profit'>('ai_score');
   const [isFetchingMatrix, setIsFetchingMatrix] = useState(false);
-  const [evaluationTicks, setEvaluationTicks] = useState<number>(5);
+  const [evaluationTicks, setEvaluationTicks] = useState<number>(0);
   const [isSettingTicks, setIsSettingTicks] = useState(false);
   const [aiAutoPilot, setAiAutoPilot] = useState<boolean>(false);
   const [isConsultingAi, setIsConsultingAi] = useState<boolean>(false);
@@ -151,8 +151,8 @@ export default function Dashboard() {
       });
       if (res.ok) {
         setEvaluationTicks(ticks);
-        showToast(`Forward Evaluation switched to ${ticks} Ticks!`, "success");
-        playTTS(`Evaluation horizon set to ${ticks} ticks.`);
+        showToast(ticks === 0 ? "Forward Evaluation switched to All Horizons (1-10 Ticks)!" : `Forward Evaluation switched to ${ticks} Ticks!`, "success");
+        playTTS(ticks === 0 ? "Evaluation horizon set to all horizons." : `Evaluation horizon set to ${ticks} ticks.`);
         fetchMatrixData();
       }
     } catch(e) {
@@ -310,7 +310,7 @@ export default function Dashboard() {
 
   const handleDeployLabStrategy = async (strategyCoreToDeploy: string, symbolToDeploy: string, recommendedMartingale: number, optimalTick?: number) => {
     try {
-      const deployTick = optimalTick || evaluationTicks;
+      const deployTick = optimalTick || (evaluationTicks === 0 ? 5 : evaluationTicks);
       setStrategyCore(strategyCoreToDeploy);
       setActiveSymbol(symbolToDeploy);
       setMaxMartingaleSteps(recommendedMartingale);
@@ -364,7 +364,7 @@ export default function Dashboard() {
     strategy_name: aiAnalysis.best_strategy_name || bestSetup?.strategy_name,
     symbol: aiAnalysis.best_symbol,
     symbol_name: aiAnalysis.best_symbol_name || bestSetup?.symbol_name,
-    best_tick: aiAnalysis.optimal_ticks || bestSetup?.best_tick || evaluationTicks,
+    best_tick: aiAnalysis.optimal_ticks || bestSetup?.best_tick || (evaluationTicks === 0 ? 5 : evaluationTicks),
     recommended_martingale: aiAnalysis.safe_martingale_steps || bestSetup?.recommended_martingale || 2,
     ai_score: aiAnalysis.ai_confidence_score || bestSetup?.ai_score || 75.0,
     market_regime: aiAnalysis.market_regime || "Statistical Edge",
@@ -1305,7 +1305,7 @@ export default function Dashboard() {
                      <Cpu className="w-6 h-6 text-[#FFD700] animate-pulse"/> STRATEGY MATRIX & FORWARD SIMULATION LAB
                    </h2>
                    <p className="text-xs text-slate-400 mt-1">
-                     Multi-market forward paper simulation (Zero balance risk). Evaluating live ticks {evaluationTicks} steps ahead.
+                     Multi-market forward paper simulation (Zero balance risk). Evaluating live ticks {evaluationTicks === 0 ? 'across all 10 horizons (1 to 10 Ticks)' : `${evaluationTicks} steps ahead`}.
                    </p>
                 </div>
                 <div className="flex items-center gap-2 flex-wrap">
@@ -1314,7 +1314,7 @@ export default function Dashboard() {
                      <span className="text-[10px] font-bold text-green-400 uppercase tracking-widest">Forward Sim Live</span>
                    </div>
                    <button 
-                     onClick={fetchMatrixData} 
+                     onClick={() => fetchMatrixData(evaluationTicks)}
                      disabled={isFetchingMatrix}
                      className="px-3 py-1.5 border border-[#D4AF37] text-[#FFD700] rounded-xl text-xs uppercase tracking-widest hover:bg-[#D4AF37]/10 flex items-center gap-1.5 transition-all cursor-pointer"
                    >
