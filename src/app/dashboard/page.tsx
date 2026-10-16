@@ -3,7 +3,7 @@ import { API_URL, WS_URL } from '../config';
 
 
 import { useState, useEffect } from "react";
-import { Activity, ShieldAlert, Target, TrendingUp, Wallet, Power, Settings, LogOut, ChevronDown, ChevronUp, CheckCircle2, History, Banknote, Cpu, Flame, Zap, RefreshCw, Trash2, Sliders } from "lucide-react";
+import { Activity, ShieldAlert, Target, TrendingUp, Wallet, Power, Settings, LogOut, ChevronDown, ChevronUp, CheckCircle2, History, Banknote, Cpu, Flame, Zap, RefreshCw, Trash2, Sliders, Crown } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { Logo } from "@/components/Logo";
@@ -128,7 +128,7 @@ export default function Dashboard() {
   const [matrixData, setMatrixData] = useState<any>(null);
   const [matrixFilterStrategy, setMatrixFilterStrategy] = useState<string>("all");
   const [matrixFilterSymbol, setMatrixFilterSymbol] = useState<string>("all");
-  const [matrixSortBy, setMatrixSortBy] = useState<'win_rate' | 'loss_streak' | 'trades'>('win_rate');
+  const [matrixSortBy, setMatrixSortBy] = useState<'ai_score' | 'win_rate' | 'loss_streak' | 'trades' | 'profit'>('ai_score');
   const [isFetchingMatrix, setIsFetchingMatrix] = useState(false);
   const [evaluationTicks, setEvaluationTicks] = useState<number>(5);
   const [isSettingTicks, setIsSettingTicks] = useState(false);
@@ -282,11 +282,15 @@ export default function Dashboard() {
       return true;
     })
     .sort((a: any, b: any) => {
+      if (matrixSortBy === 'ai_score') return (b.ai_score || 0) - (a.ai_score || 0);
       if (matrixSortBy === 'win_rate') return b.win_rate - a.win_rate;
       if (matrixSortBy === 'loss_streak') return a.max_loss_streak - b.max_loss_streak;
       if (matrixSortBy === 'trades') return b.total_trades - a.total_trades;
+      if (matrixSortBy === 'profit') return (b.simulated_pnl || 0) - (a.simulated_pnl || 0);
       return 0;
     });
+
+  const bestSetup = matrixData?.summary?.best_setup || (filteredLeaderboard.length > 0 ? filteredLeaderboard[0] : null);
 
   // Load account type from localStorage on mount
   useEffect(() => {
@@ -1173,35 +1177,7 @@ export default function Dashboard() {
                 </div>
              </div>
 
-             {/* Multi-Tick Simultaneous Forward Evaluation Bar (1 to 10 Ticks) */}
-             <div className="bg-[rgba(18,18,22,0.85)] border border-[rgba(212,175,55,0.25)] rounded-2xl p-4 backdrop-blur-md flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div className="flex items-center gap-2.5">
-                   <Sliders className="w-4 h-4 text-[#FFD700]"/>
-                   <div>
-                     <span className="text-xs font-bold text-white uppercase tracking-wider block">Simultaneous Multi-Tick Analytics (1 - 10 Ticks)</span>
-                     <span className="text-[10px] text-slate-400">Every signal is simulated across all 10 ticks simultaneously. Filter by tick to view instant performance!</span>
-                   </div>
-                </div>
-                <div className="grid grid-cols-5 sm:flex sm:flex-wrap items-center gap-1.5 sm:gap-2">
-                   {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(ticks => {
-                     const isSelected = evaluationTicks === ticks;
-                     return (
-                       <button
-                         key={ticks}
-                         onClick={() => handleSelectTick(ticks)}
-                         className={`px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1 ${
-                           isSelected
-                             ? 'bg-gradient-to-r from-[#D4AF37] to-[#FFD700] text-[#0B0B0E] shadow-[0_0_12px_rgba(212,175,55,0.5)] scale-105'
-                             : 'bg-[#0B0B0E] border border-slate-700 text-slate-300 hover:border-[#D4AF37]/50 hover:text-[#FFD700]'
-                         }`}
-                       >
-                         <span>{ticks}T</span>
-                         {ticks === 5 && <span className="text-[8px] opacity-75">★</span>}
-                       </button>
-                     );
-                   })}
-                </div>
-             </div>
+
 
              {/* Top Stat Boxes */}
              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -1232,22 +1208,73 @@ export default function Dashboard() {
                 />
              </div>
 
-             {/* Risk & Martingale Advice Banner */}
-             <div className="bg-gradient-to-r from-[rgba(212,175,55,0.12)] via-[rgba(18,18,22,0.9)] to-[rgba(34,197,94,0.1)] border border-[#D4AF37]/30 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
-                <div className="flex items-start gap-3">
-                   <div className="p-2 rounded-xl bg-[#D4AF37]/20 text-[#FFD700] mt-0.5">
-                     <Target className="w-5 h-5"/>
+             {/* AI Optimal Setup Recommendation / Current Best Live Edge */}
+             <div className="bg-gradient-to-r from-[rgba(212,175,55,0.16)] via-[rgba(18,18,22,0.95)] to-[rgba(34,197,94,0.12)] border-2 border-[#D4AF37]/40 rounded-3xl p-5 sm:p-6 backdrop-blur-xl shadow-[0_15px_35px_rgba(212,175,55,0.12)] flex flex-col lg:flex-row items-center justify-between gap-6 relative overflow-hidden">
+                <div className="flex items-start gap-4 z-10 w-full lg:w-auto">
+                   <div className="p-3.5 rounded-2xl bg-gradient-to-br from-[#D4AF37] to-[#B38728] text-[#0B0B0E] shadow-[0_0_20px_rgba(212,175,55,0.5)] shrink-0">
+                      <Crown className="w-6 h-6 sm:w-7 sm:h-7 drop-shadow-md"/>
                    </div>
-                   <div>
-                     <h4 className="text-xs font-bold text-[#FFD700] uppercase tracking-wider">Martingale Safety Advisor</h4>
-                     <p className="text-[11px] text-slate-300 mt-0.5">
-                       The table below reveals the <strong>Max Consecutive Loss Streak</strong> recorded during live market conditions. 
-                       Setting your Circuit Breaker to <span className="text-[#FFD700] font-bold">Max Loss + 1</span> protects your account from deep drawdown spikes.
-                     </p>
+                   <div className="flex flex-col">
+                      <div className="flex items-center gap-2 flex-wrap">
+                         <span className="text-[10px] font-sans font-extrabold uppercase tracking-widest px-2.5 py-0.5 rounded-full bg-[#FFD700]/20 text-[#FFD700] border border-[#FFD700]/40">
+                           👑 CURRENT BEST LIVE EDGE
+                         </span>
+                         <span className="text-[10px] text-slate-400 font-mono">
+                           AI Confidence: <strong className="text-white">{bestSetup?.ai_score?.toFixed(1) || '---'}/100</strong>
+                         </span>
+                      </div>
+                      <h3 className="text-base sm:text-lg font-serif font-bold text-white mt-1 flex items-center gap-2 flex-wrap">
+                         <span>{bestSetup?.strategy_name || "Evaluating Live Market Physics..."}</span>
+                         {bestSetup?.symbol && (
+                           <span className="text-sm font-sans text-[#FFD700] font-normal">
+                             on {bestSetup?.symbol_name} ({bestSetup?.symbol})
+                           </span>
+                         )}
+                      </h3>
+                      <p className="text-xs text-slate-300 mt-1 max-w-2xl leading-relaxed">
+                        Evaluated across win rate consistency, verified sample size ({bestSetup?.total_trades || 0} tests), minimal loss streaks, and active signal momentum.
+                      </p>
                    </div>
                 </div>
-                <div className="text-[10px] text-slate-400 bg-black/40 px-3 py-1.5 rounded-lg border border-slate-800 whitespace-nowrap">
-                   Auto-evaluation: <strong className="text-green-400">{evaluationTicks} Ticks Forward</strong>
+
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 w-full lg:w-auto z-10 shrink-0">
+                   <div className="bg-black/50 border border-[#D4AF37]/25 rounded-2xl p-3 text-center">
+                      <div className="text-[8px] text-slate-400 uppercase tracking-wider">Win Rate</div>
+                      <div className="text-base font-mono font-bold text-green-400 mt-0.5">{bestSetup?.win_rate || 0}%</div>
+                      <div className="text-[8px] text-slate-500 font-mono">{bestSetup?.wins || 0}W / {bestSetup?.losses || 0}L</div>
+                   </div>
+                   <div className="bg-black/50 border border-[#D4AF37]/25 rounded-2xl p-3 text-center">
+                      <div className="text-[8px] text-slate-400 uppercase tracking-wider">Optimal Horizon</div>
+                      <div className="text-base font-mono font-bold text-[#FFD700] mt-0.5">{bestSetup?.best_tick || evaluationTicks} Ticks</div>
+                      <div className="text-[8px] text-green-400 font-mono">{bestSetup?.best_tick_win_rate || bestSetup?.win_rate || 0}% Sweet Spot</div>
+                   </div>
+                   <div className="bg-black/50 border border-[#D4AF37]/25 rounded-2xl p-3 text-center">
+                      <div className="text-[8px] text-slate-400 uppercase tracking-wider">Max Loss Streak</div>
+                      <div className="text-base font-mono font-bold text-yellow-400 mt-0.5">{bestSetup?.max_loss_streak || 0} Losses</div>
+                      <div className="text-[8px] text-slate-400 font-mono">Breaker: {(bestSetup?.max_loss_streak || 0) + 1}</div>
+                   </div>
+                   <div className="bg-black/50 border border-[#D4AF37]/25 rounded-2xl p-3 text-center">
+                      <div className="text-[8px] text-slate-400 uppercase tracking-wider">Safe Martingale</div>
+                      <div className="text-base font-mono font-bold text-blue-400 mt-0.5">{bestSetup?.recommended_martingale || 2} Steps</div>
+                      <div className="text-[8px] text-slate-400 font-mono">Multiplier: 2.25x</div>
+                   </div>
+                </div>
+
+                <div className="w-full lg:w-auto z-10 shrink-0">
+                   <button
+                     onClick={() => bestSetup && handleDeployLabStrategy(bestSetup.strategy, bestSetup.symbol, bestSetup.recommended_martingale, bestSetup.best_tick)}
+                     disabled={!bestSetup || (strategyCore === bestSetup.strategy && activeSymbol === bestSetup.symbol)}
+                     className={`w-full lg:w-auto px-5 py-3 rounded-2xl text-xs font-bold uppercase tracking-widest transition-all flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(212,175,55,0.35)] ${
+                       (strategyCore === bestSetup?.strategy && activeSymbol === bestSetup?.symbol)
+                         ? 'bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700'
+                         : 'bg-gradient-to-r from-[#D4AF37] via-[#FFD700] to-[#E5C158] text-[#0B0B0E] hover:scale-105 active:scale-95 cursor-pointer font-extrabold'
+                     }`}
+                   >
+                     <Zap className="w-4 h-4 fill-current"/>
+                     {(strategyCore === bestSetup?.strategy && activeSymbol === bestSetup?.symbol)
+                       ? 'CURRENTLY ACTIVE IN BOT'
+                       : '⚡ AUTO-DEPLOY BEST SETUP NOW'}
+                   </button>
                 </div>
              </div>
 
@@ -1293,15 +1320,37 @@ export default function Dashboard() {
                    </div>
 
                    <div className="flex flex-col gap-1">
+                     <label className="text-[9px] text-[#C5A059] font-bold uppercase tracking-widest">Filter Horizon</label>
+                     <select 
+                       value={evaluationTicks} 
+                       onChange={e => handleSelectTick(Number(e.target.value))} 
+                       className="bg-[#0B0B0E] border border-[#D4AF37]/30 text-[#FFD700] rounded-xl px-3 py-1.5 text-xs outline-none cursor-pointer"
+                     >
+                        <option value={1}>1 Tick (Ultra Scalp)</option>
+                        <option value={2}>2 Ticks</option>
+                        <option value={3}>3 Ticks (High Freq)</option>
+                        <option value={4}>4 Ticks</option>
+                        <option value={5}>5 Ticks (Golden Standard)</option>
+                        <option value={6}>6 Ticks</option>
+                        <option value={7}>7 Ticks (Trend Rider)</option>
+                        <option value={8}>8 Ticks</option>
+                        <option value={9}>9 Ticks</option>
+                        <option value={10}>10 Ticks (Micro Trend)</option>
+                     </select>
+                   </div>
+
+                   <div className="flex flex-col gap-1">
                      <label className="text-[9px] text-[#C5A059] font-bold uppercase tracking-widest">Sort By</label>
                      <select 
                        value={matrixSortBy} 
                        onChange={e => setMatrixSortBy(e.target.value as any)} 
-                       className="bg-[#0B0B0E] border border-[#D4AF37]/30 text-[#FFD700] rounded-xl px-3 py-1.5 text-xs outline-none"
+                       className="bg-[#0B0B0E] border border-[#D4AF37]/30 text-[#FFD700] rounded-xl px-3 py-1.5 text-xs outline-none cursor-pointer"
                      >
+                        <option value="ai_score">AI Confidence Score (Best Real Setup)</option>
                         <option value="win_rate">Highest Win Rate %</option>
+                        <option value="trades">Most Tested Trades (Highest Frequency)</option>
                         <option value="loss_streak">Lowest Max Loss Streak (Safest)</option>
-                        <option value="trades">Most Trades Tested</option>
+                        <option value="profit">Highest Simulated PnL ($)</option>
                      </select>
                    </div>
                 </div>
