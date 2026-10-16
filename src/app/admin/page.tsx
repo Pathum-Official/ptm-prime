@@ -8,6 +8,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { Logo } from "@/components/Logo";
+import { Footer } from "@/components/Footer";
 
 export default function AdminDashboard() {
   const router = useRouter();
@@ -493,6 +494,7 @@ export default function AdminDashboard() {
           )}
         </AnimatePresence>
 
+        <Footer className="mt-20" />
       </main>
     </div>
   );

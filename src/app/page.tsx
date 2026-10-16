@@ -8,6 +8,7 @@ import {
   Crown, Eye, Globe, ExternalLink, HelpCircle, Check, Shield, Award
 } from "lucide-react";
 import { Logo } from "@/components/Logo";
+import { Footer } from "@/components/Footer";
 
 function WhatsAppIcon({ className = "w-5 h-5" }: { className?: string }) {
   return (
@@ -881,102 +882,8 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Footer Area with Verified Page Views Counter Badge */}
-      <footer className="border-t border-white/[0.08] bg-[#050508] py-16 px-6 text-center relative z-10">
-        <div className="max-w-5xl mx-auto flex flex-col items-center">
-          <div className="w-10 h-10 mb-3 drop-shadow-[0_0_10px_rgba(212,175,55,0.3)]"><Logo/></div>
-          <span className="text-base font-serif font-bold text-white tracking-[0.2em] uppercase mb-1">PTM PRIME QUANTUM SYSTEMS</span>
-          <p className="text-slate-400 text-xs uppercase tracking-widest font-mono font-semibold mb-6">Autonomous Algorithmic Trading Systems</p>
-          
-          {/* Social Media & Community Link Badges */}
-          <div className="flex flex-wrap items-center justify-center gap-2.5 mb-8 max-w-3xl">
-            <a 
-              href="https://wa.me/94702392762" 
-              target="_blank" 
-              rel="noopener noreferrer" 
-              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white/[0.04] border border-white/10 hover:border-emerald-500/60 hover:text-emerald-400 text-slate-300 text-xs transition-all font-mono"
-            >
-              <WhatsAppIcon className="w-3.5 h-3.5 text-emerald-400" />
-              <span>WhatsApp Desk</span>
-            </a>
-            <a 
-              href="https://chat.whatsapp.com/IvO1ICer7OuFargtiS9KmL" 
-              target="_blank" 
-              rel="noopener noreferrer" 
-              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white/[0.04] border border-white/10 hover:border-emerald-500/60 hover:text-emerald-400 text-slate-300 text-xs transition-all font-mono"
-            >
-              <WhatsAppIcon className="w-3.5 h-3.5 text-emerald-400" />
-              <span>WhatsApp Community</span>
-            </a>
-            <a 
-              href="https://t.me/PTMPrimeOfficial" 
-              target="_blank" 
-              rel="noopener noreferrer" 
-              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white/[0.04] border border-white/10 hover:border-sky-500/60 hover:text-sky-400 text-slate-300 text-xs transition-all font-mono"
-            >
-              <TelegramIcon className="w-3.5 h-3.5 text-sky-400" />
-              <span>Telegram Channel</span>
-            </a>
-            <a 
-              href="https://t.me/PTMPrime" 
-              target="_blank" 
-              rel="noopener noreferrer" 
-              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white/[0.04] border border-white/10 hover:border-sky-500/60 hover:text-sky-400 text-slate-300 text-xs transition-all font-mono"
-            >
-              <TelegramIcon className="w-3.5 h-3.5 text-sky-400" />
-              <span>Telegram Support (@PTMPrime)</span>
-            </a>
-            <a 
-              href="https://www.youtube.com/@PTMPrime" 
-              target="_blank" 
-              rel="noopener noreferrer" 
-              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white/[0.04] border border-white/10 hover:border-red-500/60 hover:text-red-400 text-slate-300 text-xs transition-all font-mono"
-            >
-              <YouTubeIcon className="w-3.5 h-3.5 text-red-400" />
-              <span>YouTube</span>
-            </a>
-            <a 
-              href="https://www.facebook.com/PTMPrimeTrading" 
-              target="_blank" 
-              rel="noopener noreferrer" 
-              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white/[0.04] border border-white/10 hover:border-blue-500/60 hover:text-blue-400 text-slate-300 text-xs transition-all font-mono"
-            >
-              <FacebookIcon className="w-3.5 h-3.5 text-blue-400" />
-              <span>Facebook</span>
-            </a>
-            <a 
-              href="https://www.instagram.com/ptmprime" 
-              target="_blank" 
-              rel="noopener noreferrer" 
-              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white/[0.04] border border-white/10 hover:border-pink-500/60 hover:text-pink-400 text-slate-300 text-xs transition-all font-mono"
-            >
-              <InstagramIcon className="w-3.5 h-3.5 text-pink-400" />
-              <span>Instagram</span>
-            </a>
-            <a 
-              href="https://www.tiktok.com/@ptm_prime" 
-              target="_blank" 
-              rel="noopener noreferrer" 
-              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white/[0.04] border border-white/10 hover:border-teal-400/60 hover:text-teal-300 text-slate-300 text-xs transition-all font-mono"
-            >
-              <TikTokIcon className="w-3.5 h-3.5 text-teal-300" />
-              <span>TikTok</span>
-            </a>
-          </div>
-
-          {/* Verified Hits.sh Counter Badge with Zero-Failure Native Fallback */}
-          <div className="mb-6 flex flex-col sm:flex-row items-center justify-center gap-3">
-            <PlatformTrafficBadge />
-          </div>
-
-          <p className="text-slate-500 text-[11px] max-w-2xl mx-auto leading-relaxed font-light">
-            Trading synthetic volatility indices on Deriv carries capital risk. Algorithmic execution and quantitative models do not guarantee future returns. Capital preservation relies on strict adherence to the Masaniello vault protocol.
-          </p>
-          <div className="text-slate-600 text-[10px] uppercase tracking-widest font-mono mt-6">
-            © 2026 PTM Prime Group. All Rights Reserved.
-          </div>
-        </div>
-      </footer>
+      {/* Institutional Reusable Footer */}
+      <Footer />
 
       {/* Plan Activation & Payment Concierge Modal */}
       {selectedPlanForModal && (

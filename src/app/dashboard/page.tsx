@@ -7,6 +7,7 @@ import { Activity, ShieldAlert, Target, TrendingUp, Wallet, Power, Settings, Log
 import { AnimatePresence, motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { Logo } from "@/components/Logo";
+import { Footer } from "@/components/Footer";
 
 export default function Dashboard() {
   const router = useRouter();
@@ -1460,18 +1461,18 @@ export default function Dashboard() {
                     </div>
                     <div className="bg-black/60 border border-[#D4AF37]/30 rounded-2xl p-3.5 text-center shadow-inner">
                        <div className="text-[9px] text-slate-400 uppercase tracking-widest font-semibold">Optimal Horizon</div>
-                       <div className="text-xl sm:text-2xl font-mono font-extrabold text-[#FFD700] mt-1">{currentBestEdge?.best_tick || evaluationTicks} Ticks</div>
+                       <div className="text-xl sm:text-2xl font-mono font-extrabold text-[#FFD700] mt-1">{currentBestEdge?.best_tick || (evaluationTicks === 0 ? 5 : evaluationTicks)} Ticks</div>
                        <div className="text-[9px] text-green-400 font-mono mt-0.5">{currentBestEdge?.best_tick_win_rate || currentBestEdge?.win_rate || 0}% Sweet Spot</div>
                     </div>
                     <div className="bg-black/60 border border-[#D4AF37]/30 rounded-2xl p-3.5 text-center shadow-inner">
-                       <div className="text-[9px] text-slate-400 uppercase tracking-widest font-semibold">Max Loss Streak</div>
-                       <div className="text-xl sm:text-2xl font-mono font-extrabold text-yellow-400 mt-1">{currentBestEdge?.max_loss_streak || 0} Losses</div>
-                       <div className="text-[9px] text-slate-400 font-mono mt-0.5">Circuit Breaker: {(currentBestEdge?.max_loss_streak || 0) + 1}</div>
+                       <div className="text-[9px] text-slate-400 uppercase tracking-widest font-semibold">Peak Loss Run</div>
+                       <div className="text-xl sm:text-2xl font-mono font-extrabold text-yellow-400 mt-1">{currentBestEdge?.max_loss_streak || 0}L</div>
+                       <div className="text-[9px] text-slate-400 font-mono mt-0.5">Hit {currentBestEdge?.max_loss_streak_count || 1} time(s)</div>
                     </div>
                     <div className="bg-black/60 border border-[#D4AF37]/30 rounded-2xl p-3.5 text-center shadow-inner">
-                       <div className="text-[9px] text-slate-400 uppercase tracking-widest font-semibold">Safe Martingale</div>
-                       <div className="text-xl sm:text-2xl font-mono font-extrabold text-blue-400 mt-1">{currentBestEdge?.recommended_martingale || 2} Steps</div>
-                       <div className="text-[9px] text-slate-400 font-mono mt-0.5">Multiplier: 2.25x</div>
+                       <div className="text-[9px] text-slate-400 uppercase tracking-widest font-semibold">Typical Loss Cluster</div>
+                       <div className="text-xl sm:text-2xl font-mono font-extrabold text-blue-400 mt-1">{currentBestEdge?.dominant_loss_streak || 1}L</div>
+                       <div className="text-[9px] text-slate-400 font-mono mt-0.5">Frequency: {currentBestEdge?.dominant_loss_streak_count || 0} event(s)</div>
                     </div>
                  </div>
               </div>
@@ -1495,6 +1496,8 @@ export default function Dashboard() {
                         <option value="macd_kinetic_impulse">Kinetic Momentum Pulse</option>
                         <option value="heikin_ashi_pulse">Synthetic Micro-Wave Scalp</option>
                         <option value="breakout_box_scalper">Dynamic Breakout Scalper</option>
+                        <option value="contrarian_liquidity_fade">Contrarian Liquidity Fade</option>
+                        <option value="quantum_tick_velocity">Quantum Tick Velocity</option>
                      </select>
                    </div>
 
@@ -1524,6 +1527,7 @@ export default function Dashboard() {
                        onChange={e => handleSelectTick(Number(e.target.value))} 
                        className="bg-[#0B0B0E] border border-[#D4AF37]/30 text-[#FFD700] rounded-xl px-3 py-1.5 text-xs outline-none cursor-pointer"
                      >
+                        <option value={0}>🌐 All Horizons (1 to 10 Ticks - Full Universe)</option>
                         <option value={1}>1 Tick (Ultra Scalp)</option>
                         <option value={2}>2 Ticks</option>
                         <option value={3}>3 Ticks (High Freq)</option>
@@ -1577,6 +1581,9 @@ export default function Dashboard() {
                               <span className="px-1.5 py-0.5 rounded text-[8px] font-sans font-bold uppercase tracking-wider bg-[#D4AF37]/15 text-[#FFD700] border border-[#D4AF37]/30">
                                 {item.badge}
                               </span>
+                              <span className="px-1.5 py-0.5 rounded text-[8px] font-mono font-bold uppercase bg-blue-500/15 text-blue-300 border border-blue-500/30">
+                                {item.tick}T
+                              </span>
                               {isCurrentActive && (
                                 <span className="px-1.5 py-0.5 rounded text-[8px] font-sans font-bold uppercase bg-green-500/20 text-green-400 border border-green-500/40">
                                   ACTIVE
@@ -1603,19 +1610,19 @@ export default function Dashboard() {
                             <div className="text-[8px] text-slate-500">({item.total_trades} tests)</div>
                           </div>
                           <div>
-                            <div className="text-[8px] text-slate-400 uppercase">Max Loss Streak</div>
-                            <div className={`text-[10px] font-bold mt-0.5 px-1.5 py-0.5 rounded inline-block ${
+                            <div className="text-[8px] text-slate-400 uppercase">Peak Loss Run</div>
+                            <div className={`text-[10px] font-mono font-bold mt-0.5 px-1.5 py-0.5 rounded inline-block ${
                               item.max_loss_streak <= 2 ? 'text-green-400 bg-green-500/15 border border-green-500/30' :
                               item.max_loss_streak <= 3 ? 'text-yellow-400 bg-yellow-500/15 border border-yellow-500/30' :
                               'text-red-400 bg-red-500/15 border border-red-500/30'
                             }`}>
-                              {item.max_loss_streak} Max
+                              {item.max_loss_streak}L ({item.max_loss_streak_count || 1}x)
                             </div>
                           </div>
                           <div>
-                            <div className="text-[8px] text-slate-400 uppercase">Safe Martingale</div>
-                            <div className="text-xs font-bold text-[#FFD700] mt-0.5">
-                              {item.recommended_martingale} Steps
+                            <div className="text-[8px] text-slate-400 uppercase">Typical Cluster</div>
+                            <div className="text-xs font-mono font-bold text-[#FFD700] mt-0.5">
+                              {item.dominant_loss_streak || 1}L ({item.dominant_loss_streak_count || 0}x)
                             </div>
                           </div>
                         </div>
@@ -1637,7 +1644,7 @@ export default function Dashboard() {
                         </div>
 
                         <button 
-                          onClick={() => handleDeployLabStrategy(item.strategy, item.symbol, item.recommended_martingale, item.best_tick)}
+                          onClick={() => handleDeployLabStrategy(item.strategy, item.symbol, item.recommended_martingale, item.tick || item.best_tick)}
                           disabled={isCurrentActive}
                           className={`w-full py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 ${
                             isCurrentActive 
@@ -1645,7 +1652,7 @@ export default function Dashboard() {
                               : 'bg-gradient-to-r from-[#D4AF37] to-[#FFD700] text-[#0B0B0E] hover:shadow-[0_0_15px_rgba(212,175,55,0.4)] active:scale-95 cursor-pointer font-bold'
                           }`}
                         >
-                          <Zap className="w-3.5 h-3.5"/> {isCurrentActive ? 'CURRENTLY ACTIVE IN BOT' : `DEPLOY (OPTIMAL ${item.best_tick}T)`}
+                          <Zap className="w-3.5 h-3.5"/> {isCurrentActive ? 'CURRENTLY ACTIVE IN BOT' : `DEPLOY (${item.tick || item.best_tick}T)`}
                         </button>
                       </div>
                     );
@@ -1663,7 +1670,7 @@ export default function Dashboard() {
                        <th className="py-4 font-bold text-center">Win Rate</th>
                        <th className="py-4 font-bold text-center">Simulated W/L</th>
                        <th className="py-4 font-bold text-center">Max Loss Streak</th>
-                       <th className="py-4 font-bold text-center">Safe Martingale</th>
+                       <th className="py-4 font-bold text-center">Loss Run Profile</th>
                        <th className="py-4 font-bold text-right">Quick Deploy</th>
                      </tr>
                    </thead>
@@ -1682,6 +1689,9 @@ export default function Dashboard() {
                                    <span className="px-1.5 py-0.5 rounded text-[8px] font-sans font-bold uppercase tracking-wider bg-[#D4AF37]/15 text-[#FFD700] border border-[#D4AF37]/30">
                                      {item.badge}
                                    </span>
+                                   <span className="px-1.5 py-0.5 rounded text-[8px] font-mono font-bold uppercase bg-blue-500/15 text-blue-300 border border-blue-500/30">
+                                     {item.tick}T
+                                   </span>
                                    {isCurrentActive && (
                                      <span className="px-1.5 py-0.5 rounded text-[8px] font-sans font-bold uppercase bg-green-500/20 text-green-400 border border-green-500/40">
                                        LIVE IN BOT
@@ -1694,7 +1704,7 @@ export default function Dashboard() {
                                      <Target className="w-2.5 h-2.5"/> Best: {item.best_tick}T ({item.best_tick_win_rate}%)
                                    </span>
                                  </div>
-                               </div>
+                                </div>
                              </td>
                              <td className="py-3.5 text-center text-[10px] font-sans text-slate-400">
                                {item.strategy_type}
@@ -1726,13 +1736,24 @@ export default function Dashboard() {
                                </span>
                              </td>
                              <td className="py-3.5 text-center">
-                               <span className="text-[#FFD700] font-bold text-xs">
-                                 {item.recommended_martingale} Steps
-                               </span>
+                               <div className="flex flex-col items-center gap-0.5">
+                                 <span className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold ${
+                                   item.max_loss_streak <= 2 ? 'bg-green-500/15 text-green-400 border border-green-500/30' :
+                                   item.max_loss_streak <= 3 ? 'bg-yellow-500/15 text-yellow-400 border border-yellow-500/30' :
+                                   'bg-red-500/15 text-red-400 border border-red-500/30'
+                                 }`}>
+                                   Peak: {item.max_loss_streak}L ({item.max_loss_streak_count || 1}x)
+                                 </span>
+                                 {item.dominant_loss_streak > 0 && (
+                                   <span className="text-[9px] text-slate-400 font-mono">
+                                     Typical: {item.dominant_loss_streak}L ({item.dominant_loss_streak_count || 0}x)
+                                   </span>
+                                 )}
+                               </div>
                              </td>
                              <td className="py-3.5 text-right">
                                <button 
-                                 onClick={() => handleDeployLabStrategy(item.strategy, item.symbol, item.recommended_martingale, item.best_tick)}
+                                 onClick={() => handleDeployLabStrategy(item.strategy, item.symbol, item.recommended_martingale, item.tick || item.best_tick)}
                                  disabled={isCurrentActive}
                                  className={`px-3 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 ml-auto ${
                                    isCurrentActive 
@@ -1740,14 +1761,14 @@ export default function Dashboard() {
                                      : 'bg-gradient-to-r from-[#D4AF37] to-[#FFD700] text-[#0B0B0E] hover:shadow-[0_0_15px_rgba(212,175,55,0.4)] active:scale-95 cursor-pointer'
                                  }`}
                                >
-                                 <Zap className="w-3 h-3"/> {isCurrentActive ? 'ACTIVE' : 'DEPLOY'}
+                                 <Zap className="w-3 h-3"/> {isCurrentActive ? 'ACTIVE' : `DEPLOY (${item.tick || item.best_tick}T)`}
                                </button>
                              </td>
                            </tr>
                          );
                        })
-                     )}
-                   </tbody>
+                      )}
+                    </tbody>
                 </table>
              </div>
 
@@ -1792,6 +1813,7 @@ export default function Dashboard() {
           </div>
         )}
 
+        <Footer className="pb-28" />
       </main>
 
             {/* Upgraded Bottom Navigation */}
