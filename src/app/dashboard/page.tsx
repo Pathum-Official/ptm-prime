@@ -3,7 +3,7 @@ import { API_URL, WS_URL } from '../config';
 
 
 import { useState, useEffect } from "react";
-import { Activity, ShieldAlert, Target, TrendingUp, Wallet, Power, Settings, LogOut, ChevronDown, ChevronUp, CheckCircle2, History, Banknote, Cpu, Flame, Zap, RefreshCw } from "lucide-react";
+import { Activity, ShieldAlert, Target, TrendingUp, Wallet, Power, Settings, LogOut, ChevronDown, ChevronUp, CheckCircle2, History, Banknote, Cpu, Flame, Zap, RefreshCw, Trash2, Sliders } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { Logo } from "@/components/Logo";
@@ -130,6 +130,76 @@ export default function Dashboard() {
   const [matrixFilterSymbol, setMatrixFilterSymbol] = useState<string>("all");
   const [matrixSortBy, setMatrixSortBy] = useState<'win_rate' | 'loss_streak' | 'trades'>('win_rate');
   const [isFetchingMatrix, setIsFetchingMatrix] = useState(false);
+  const [evaluationTicks, setEvaluationTicks] = useState<number>(5);
+  const [isSettingTicks, setIsSettingTicks] = useState(false);
+
+  const handleSetEvaluationTicks = async (ticks: number) => {
+    try {
+      setIsSettingTicks(true);
+      const res = await fetch(`${API_URL}/api/v1/analytics/set-ticks`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "ngrok-skip-browser-warning": "true",
+          "Authorization": `Bearer ${localStorage.getItem("token")}`
+        },
+        credentials: "include",
+        body: JSON.stringify({ ticks })
+      });
+      if (res.ok) {
+        setEvaluationTicks(ticks);
+        showToast(`Forward Evaluation switched to ${ticks} Ticks!`, "success");
+        playTTS(`Evaluation horizon set to ${ticks} ticks.`);
+        fetchMatrixData();
+      }
+    } catch(e) {
+      showToast("Failed to change evaluation ticks", "error");
+    } finally {
+      setIsSettingTicks(false);
+    }
+  };
+
+  const handleResetLab = async () => {
+    if (!confirm("Are you sure you want to reset all simulation stats back to 0?")) return;
+    try {
+      const res = await fetch(`${API_URL}/api/v1/analytics/reset`, {
+        method: "POST",
+        headers: {
+          "ngrok-skip-browser-warning": "true",
+          "Authorization": `Bearer ${localStorage.getItem("token")}`
+        },
+        credentials: "include"
+      });
+      if (res.ok) {
+        showToast("Matrix Lab reset to zero! Gathering fresh live data...", "success");
+        playTTS("Simulation matrix reset to zero.");
+        fetchMatrixData();
+      }
+    } catch(e) {
+      showToast("Failed to reset Matrix Lab", "error");
+    }
+  };
+
+  const handleClearHistory = async () => {
+    if (!confirm("Are you sure you want to delete all past trade history records from the database?")) return;
+    try {
+      const res = await fetch(`${API_URL}/api/v1/analytics/clear-history`, {
+        method: "POST",
+        headers: {
+          "ngrok-skip-browser-warning": "true",
+          "Authorization": `Bearer ${localStorage.getItem("token")}`
+        },
+        credentials: "include"
+      });
+      if (res.ok) {
+        showToast("All old trade history wiped cleanly from database!", "success");
+        playTTS("Trade history cleared.");
+        fetchHistory();
+      }
+    } catch(e) {
+      showToast("Failed to clear trade history", "error");
+    }
+  };
 
   const fetchMatrixData = async () => {
     try {
@@ -140,6 +210,9 @@ export default function Dashboard() {
       if (res.ok) {
         const data = await res.json();
         setMatrixData(data);
+        if (data?.summary?.evaluation_ticks) {
+          setEvaluationTicks(data.summary.evaluation_ticks);
+        }
       }
     } catch (e) {
     } finally {
@@ -960,7 +1033,10 @@ export default function Dashboard() {
                      />
                    </div>
                  )}
-                 <button onClick={fetchHistory} className="px-4 py-2 h-[34px] border border-[#D4AF37] text-[#FFD700] rounded-xl text-xs uppercase tracking-widest hover:bg-[#D4AF37]/10 flex items-center justify-center">Refresh Data</button>
+                 <button onClick={fetchHistory} className="px-4 py-2 h-[34px] border border-[#D4AF37] text-[#FFD700] rounded-xl text-xs uppercase tracking-widest hover:bg-[#D4AF37]/10 flex items-center justify-center transition-all cursor-pointer">Refresh Data</button>
+                  <button onClick={handleClearHistory} className="px-3 py-2 h-[34px] border border-red-500/40 text-red-400 hover:bg-red-500/10 rounded-xl text-xs uppercase tracking-widest flex items-center gap-1.5 transition-all cursor-pointer" title="Wipe all trade records to start fresh">
+                    <Trash2 className="w-3.5 h-3.5"/> Wipe History
+                  </button>
                </div>
              </div>
 
@@ -1053,10 +1129,10 @@ export default function Dashboard() {
                      <Cpu className="w-6 h-6 text-[#FFD700] animate-pulse"/> STRATEGY MATRIX & FORWARD SIMULATION LAB
                    </h2>
                    <p className="text-xs text-slate-400 mt-1">
-                     Multi-market forward paper simulation (Zero balance risk). Evaluating live ticks 5 steps ahead.
+                     Multi-market forward paper simulation (Zero balance risk). Evaluating live ticks {evaluationTicks} steps ahead.
                    </p>
                 </div>
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2 flex-wrap">
                    <div className="flex items-center gap-2 bg-[#22c55e]/10 border border-[#22c55e]/30 px-3 py-1.5 rounded-full">
                      <span className="w-2 h-2 rounded-full bg-green-500 animate-ping"></span>
                      <span className="text-[10px] font-bold text-green-400 uppercase tracking-widest">Forward Sim Live</span>
@@ -1064,10 +1140,48 @@ export default function Dashboard() {
                    <button 
                      onClick={fetchMatrixData} 
                      disabled={isFetchingMatrix}
-                     className="px-3 py-1.5 border border-[#D4AF37] text-[#FFD700] rounded-xl text-xs uppercase tracking-widest hover:bg-[#D4AF37]/10 flex items-center gap-2 transition-all cursor-pointer"
+                     className="px-3 py-1.5 border border-[#D4AF37] text-[#FFD700] rounded-xl text-xs uppercase tracking-widest hover:bg-[#D4AF37]/10 flex items-center gap-1.5 transition-all cursor-pointer"
                    >
                      <RefreshCw className={`w-3.5 h-3.5 ${isFetchingMatrix ? 'animate-spin' : ''}`}/> Sync
                    </button>
+                   <button 
+                     onClick={handleResetLab} 
+                     className="px-3 py-1.5 border border-red-500/40 text-red-400 rounded-xl text-xs uppercase tracking-widest hover:bg-red-500/10 flex items-center gap-1.5 transition-all cursor-pointer"
+                     title="Reset all simulation counters to pure zero"
+                   >
+                     <Trash2 className="w-3.5 h-3.5"/> Reset Lab (Zero)
+                   </button>
+                </div>
+             </div>
+
+             {/* Tick Horizon Selector Bar */}
+             <div className="bg-[rgba(18,18,22,0.85)] border border-[rgba(212,175,55,0.25)] rounded-2xl p-4 backdrop-blur-md flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="flex items-center gap-2.5">
+                   <Sliders className="w-4 h-4 text-[#FFD700]"/>
+                   <div>
+                     <span className="text-xs font-bold text-white uppercase tracking-wider block">Forward Evaluation Tick Horizon</span>
+                     <span className="text-[10px] text-slate-400">Choose how many ticks ahead to test strategy outcomes (Live Market Physics)</span>
+                   </div>
+                </div>
+                <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+                   {[1, 3, 5, 7, 10].map(ticks => {
+                     const isSelected = evaluationTicks === ticks;
+                     return (
+                       <button
+                         key={ticks}
+                         onClick={() => handleSetEvaluationTicks(ticks)}
+                         disabled={isSettingTicks}
+                         className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1 ${
+                           isSelected
+                             ? 'bg-gradient-to-r from-[#D4AF37] to-[#FFD700] text-[#0B0B0E] shadow-[0_0_12px_rgba(212,175,55,0.5)] scale-105'
+                             : 'bg-[#0B0B0E] border border-slate-700 text-slate-300 hover:border-[#D4AF37]/50 hover:text-[#FFD700]'
+                         }`}
+                       >
+                         <span>{ticks} {ticks === 1 ? 'Tick' : 'Ticks'}</span>
+                         {ticks === 5 && <span className="text-[8px] opacity-75 font-normal">(Default)</span>}
+                       </button>
+                     );
+                   })}
                 </div>
              </div>
 
@@ -1115,7 +1229,7 @@ export default function Dashboard() {
                    </div>
                 </div>
                 <div className="text-[10px] text-slate-400 bg-black/40 px-3 py-1.5 rounded-lg border border-slate-800 whitespace-nowrap">
-                   Auto-evaluation: <strong className="text-green-400">5 Ticks Forward</strong>
+                   Auto-evaluation: <strong className="text-green-400">{evaluationTicks} Ticks Forward</strong>
                 </div>
              </div>
 
@@ -1177,7 +1291,93 @@ export default function Dashboard() {
              </div>
 
              {/* Strategy Performance Leaderboard */}
-             <div className="bg-[rgba(18,18,22,0.85)] border border-[rgba(212,175,55,0.25)] rounded-3xl p-6 backdrop-blur-md shadow-[0_10px_30px_rgba(0,0,0,0.5)] overflow-x-auto">
+             {/* Mobile Responsive Strategy Cards (< 768px) */}
+             <div className="grid grid-cols-1 gap-3 md:hidden">
+                {filteredLeaderboard.length === 0 ? (
+                  <div className="bg-[rgba(18,18,22,0.85)] border border-[rgba(212,175,55,0.25)] rounded-2xl p-6 text-center text-slate-500 text-xs">
+                    No strategy pairs matching current filter.
+                  </div>
+                ) : (
+                  filteredLeaderboard.map((item: any, i: number) => {
+                    const isCurrentActive = (strategyCore === item.strategy && activeSymbol === item.symbol);
+                    return (
+                      <div key={i} className="bg-[rgba(18,18,22,0.92)] border border-[rgba(212,175,55,0.25)] rounded-2xl p-4 flex flex-col gap-3 shadow-[0_4px_20px_rgba(0,0,0,0.4)] backdrop-blur-md">
+                        <div className="flex items-start justify-between gap-2">
+                          <div>
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <span className="font-bold text-white text-xs">{item.strategy_name}</span>
+                              <span className="px-1.5 py-0.5 rounded text-[8px] font-sans font-bold uppercase tracking-wider bg-[#D4AF37]/15 text-[#FFD700] border border-[#D4AF37]/30">
+                                {item.badge}
+                              </span>
+                              {isCurrentActive && (
+                                <span className="px-1.5 py-0.5 rounded text-[8px] font-sans font-bold uppercase bg-green-500/20 text-green-400 border border-green-500/40">
+                                  ACTIVE
+                                </span>
+                              )}
+                            </div>
+                            <div className="text-[11px] text-[#C5A059] mt-0.5 font-semibold">{item.symbol_name} ({item.symbol})</div>
+                            <div className="text-[9px] text-slate-400">{item.strategy_type}</div>
+                          </div>
+                          <div className="text-right">
+                            <div className={`font-bold text-base ${item.win_rate >= 65 ? 'text-green-400' : item.win_rate >= 55 ? 'text-[#FFD700]' : 'text-slate-400'}`}>
+                              {item.win_rate}%
+                            </div>
+                            <div className="text-[8px] text-slate-400 uppercase tracking-wider">Win Rate</div>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-3 gap-2 bg-black/40 border border-slate-800/80 rounded-xl p-2.5 text-center">
+                          <div>
+                            <div className="text-[8px] text-slate-400 uppercase">Simulated W/L</div>
+                            <div className="text-xs font-mono font-bold mt-0.5">
+                              <span className="text-green-400">{item.wins}</span> / <span className="text-red-400">{item.losses}</span>
+                            </div>
+                            <div className="text-[8px] text-slate-500">({item.total_trades} tests)</div>
+                          </div>
+                          <div>
+                            <div className="text-[8px] text-slate-400 uppercase">Max Loss Streak</div>
+                            <div className={`text-[10px] font-bold mt-0.5 px-1.5 py-0.5 rounded inline-block ${
+                              item.max_loss_streak <= 2 ? 'text-green-400 bg-green-500/15 border border-green-500/30' :
+                              item.max_loss_streak <= 3 ? 'text-yellow-400 bg-yellow-500/15 border border-yellow-500/30' :
+                              'text-red-400 bg-red-500/15 border border-red-500/30'
+                            }`}>
+                              {item.max_loss_streak} Max
+                            </div>
+                          </div>
+                          <div>
+                            <div className="text-[8px] text-slate-400 uppercase">Safe Martingale</div>
+                            <div className="text-xs font-bold text-[#FFD700] mt-0.5">
+                              {item.recommended_martingale} Steps
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                          <div 
+                            style={{ width: `${Math.min(item.win_rate, 100)}%` }} 
+                            className={`h-full ${item.win_rate >= 65 ? 'bg-green-500' : item.win_rate >= 55 ? 'bg-[#FFD700]' : 'bg-red-500'}`}
+                          />
+                        </div>
+
+                        <button 
+                          onClick={() => handleDeployLabStrategy(item.strategy, item.symbol, item.recommended_martingale)}
+                          disabled={isCurrentActive}
+                          className={`w-full py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 ${
+                            isCurrentActive 
+                              ? 'bg-slate-800 text-slate-500 cursor-not-allowed'
+                              : 'bg-gradient-to-r from-[#D4AF37] to-[#FFD700] text-[#0B0B0E] hover:shadow-[0_0_15px_rgba(212,175,55,0.4)] active:scale-95 cursor-pointer font-bold'
+                          }`}
+                        >
+                          <Zap className="w-3.5 h-3.5"/> {isCurrentActive ? 'CURRENTLY ACTIVE IN BOT' : 'DEPLOY THIS STRATEGY'}
+                        </button>
+                      </div>
+                    );
+                  })
+                )}
+             </div>
+
+             {/* Desktop Leaderboard Table (>= 768px) */}
+             <div className="hidden md:block bg-[rgba(18,18,22,0.85)] border border-[rgba(212,175,55,0.25)] rounded-3xl p-6 backdrop-blur-md shadow-[0_10px_30px_rgba(0,0,0,0.5)] overflow-x-auto">
                 <table className="w-full text-left border-collapse min-w-[700px]">
                    <thead>
                      <tr className="border-b border-[#D4AF37]/20 text-[#C5A059] text-[10px] uppercase tracking-widest">
@@ -1313,8 +1513,8 @@ export default function Dashboard() {
       </main>
 
             {/* Upgraded Bottom Navigation */}
-      <div className="fixed bottom-6 left-0 right-0 z-50 px-4">
-        <div className="max-w-xl mx-auto bg-[#121216]/90 backdrop-blur-2xl border border-[#D4AF37]/30 rounded-2xl px-2 py-2 flex justify-around items-center shadow-[0_15px_40px_rgba(0,0,0,0.8)]">
+      <div className="fixed bottom-3 sm:bottom-6 left-0 right-0 z-50 px-2 sm:px-4 pointer-events-none">
+        <div className="pointer-events-auto max-w-full sm:max-w-xl mx-auto bg-[#121216]/95 backdrop-blur-2xl border border-[#D4AF37]/35 rounded-2xl px-1.5 sm:px-3 py-1 sm:py-2 flex justify-between items-center shadow-[0_15px_40px_rgba(0,0,0,0.85)]">
           {[
             { id: 'trade', icon: Activity, label: 'Terminal' },
             { id: 'strategies', icon: Target, label: 'Logic' },
@@ -1323,9 +1523,17 @@ export default function Dashboard() {
             { id: 'history', icon: History, label: 'History' },
             { id: 'settings', icon: ShieldAlert, label: 'Vault' }
           ].map(tab => (
-            <button key={tab.id} onClick={() => setActiveTab(tab.id as any)} className={`flex flex-col items-center gap-1 w-16 sm:w-20 py-1.5 rounded-xl transition-all duration-300 cursor-pointer ${activeTab === tab.id ? 'text-[#FFD700] bg-[#D4AF37]/10' : 'text-[#C5A059]/50 hover:text-[#C5A059] hover:bg-white/5'}`}>
-              <tab.icon className={`w-4 h-4 sm:w-5 sm:h-5 ${activeTab === tab.id ? 'drop-shadow-[0_0_8px_rgba(255,215,0,0.5)]' : ''}`} />
-              <span className="text-[8px] sm:text-[9px] uppercase tracking-widest font-bold">{tab.label}</span>
+            <button 
+              key={tab.id} 
+              onClick={() => setActiveTab(tab.id as any)} 
+              className={`flex flex-col items-center justify-center gap-0.5 sm:gap-1 flex-1 py-1 sm:py-1.5 rounded-xl transition-all duration-300 cursor-pointer min-w-0 ${
+                activeTab === tab.id 
+                  ? 'text-[#FFD700] bg-[#D4AF37]/15 shadow-[0_0_10px_rgba(212,175,55,0.2)]' 
+                  : 'text-[#C5A059]/60 hover:text-[#C5A059] hover:bg-white/5'
+              }`}
+            >
+              <tab.icon className={`w-3.5 h-3.5 sm:w-5 sm:h-5 ${activeTab === tab.id ? 'drop-shadow-[0_0_8px_rgba(255,215,0,0.6)]' : ''}`} />
+              <span className="text-[7.5px] sm:text-[9px] uppercase tracking-wider font-bold truncate max-w-full px-0.5">{tab.label}</span>
             </button>
           ))}
         </div>
