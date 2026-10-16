@@ -8,15 +8,28 @@ import { motion, AnimatePresence } from 'framer-motion';
 export function ServerStatus() {
   const [isOffline, setIsOffline] = useState(false);
   const [isChecking, setIsChecking] = useState(false);
+  const [failCount, setFailCount] = useState(0);
 
   const checkStatus = async () => {
     setIsChecking(true);
     try {
       const res = await fetch(`${API_URL}/api/v1/health`, { cache: 'no-store', headers: { "ngrok-skip-browser-warning": "true" } });
-      if (res.ok) setIsOffline(false);
-      else setIsOffline(true);
+      if (res.ok) {
+        setIsOffline(false);
+        setFailCount(0);
+      } else {
+        setFailCount(prev => {
+          const next = prev + 1;
+          if (next >= 2) setIsOffline(true);
+          return next;
+        });
+      }
     } catch (e) {
-      setIsOffline(true);
+      setFailCount(prev => {
+        const next = prev + 1;
+        if (next >= 2) setIsOffline(true);
+        return next;
+      });
     }
     setIsChecking(false);
   };
