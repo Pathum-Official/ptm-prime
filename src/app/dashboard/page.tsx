@@ -1136,6 +1136,7 @@ export default function Dashboard() {
                 <option value="breakout_box_scalper">Dynamic Breakout Scalper (Liquidity Compression Expansion)</option>
                 <option value="contrarian_liquidity_fade">Contrarian Liquidity Fade (False Breakout Absorption)</option>
                 <option value="quantum_tick_velocity">Quantum Tick Velocity (High-Entropy Micro Burst)</option>
+                <option value="defensive_standby">🛡️ Defensive Capital Preservation (Tactical Sideline Standby)</option>
               </select>
             </div>
 
@@ -1896,6 +1897,7 @@ export default function Dashboard() {
                         <option value="breakout_box_scalper">Dynamic Breakout Scalper</option>
                         <option value="contrarian_liquidity_fade">Contrarian Liquidity Fade</option>
                         <option value="quantum_tick_velocity">Quantum Tick Velocity</option>
+                        <option value="defensive_standby">Defensive Capital Preservation</option>
                      </select>
                    </div>
 
