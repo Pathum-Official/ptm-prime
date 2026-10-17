@@ -741,12 +741,16 @@ export default function Dashboard() {
           .then(hist => setTradeHistory(hist))
           .catch(() => {});
           
-        setLogs(prev => [{
-          id: Date.now().toString() + Math.random().toString(36).substring(2, 9),
-          text: data.message || `Trade ${data.contract_id || 'Closed'} with Profit: $${(data.profit || 0).toFixed(2)}`,
-          type: (data.profit || 0) >= 0 ? 'success' as const : 'error' as const,
-          timestamp: new Date().toLocaleTimeString()
-        }, ...prev].slice(0, 50));
+        setLogs(prev => {
+          const newText = data.message || `Trade ${data.contract_id || 'Closed'} with Profit: $${(data.profit || 0).toFixed(2)}`;
+          if (prev.length > 0 && prev[0].text === newText) return prev;
+          return [{
+            id: `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+            text: newText,
+            type: (data.profit || 0) >= 0 ? 'success' as const : 'error' as const,
+            timestamp: new Date().toLocaleTimeString()
+          }, ...prev].slice(0, 50);
+        });
         
         if (voiceEnabled) {
           try {
@@ -818,7 +822,16 @@ export default function Dashboard() {
             if (voiceEnabled) playTTS('The simulated signal lost.');
           }
         }
-        setLogs(prev => [{id: Date.now().toString(), text: data.message, type: data.type === 'account_info' ? 'alert' : data.type, timestamp: new Date().toLocaleTimeString()}, ...prev].slice(0, 50));
+        setLogs(prev => {
+          if (!data.message) return prev;
+          if (prev.length > 0 && prev[0].text === data.message) return prev;
+          return [{
+            id: `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+            text: data.message,
+            type: data.type === 'account_info' ? 'alert' : data.type,
+            timestamp: new Date().toLocaleTimeString()
+          }, ...prev].slice(0, 50);
+        });
         if (data.type === 'account_info' && data.balance !== undefined) {
           setAccountBalance(data.balance);
         }
