@@ -2,8 +2,8 @@
 import { API_URL, WS_URL } from '../config';
 
 
-import { useState, useEffect } from "react";
-import { Activity, ShieldAlert, Target, TrendingUp, Wallet, Power, Settings, LogOut, ChevronDown, ChevronUp, CheckCircle2, History, Banknote, Cpu, Flame, Zap, RefreshCw, Trash2, Sliders, Crown, Sparkles, Bot, Lock, Clock } from "lucide-react";
+import { useState, useEffect, useMemo } from "react";
+import { Activity, ShieldAlert, Target, TrendingUp, Wallet, Power, Settings, LogOut, ChevronDown, ChevronUp, CheckCircle2, History, Banknote, Cpu, Flame, Zap, RefreshCw, Trash2, Sliders, Crown, Sparkles, Bot, Lock, Clock, Calculator, ShieldCheck, AlertTriangle } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { Logo } from "@/components/Logo";
@@ -36,7 +36,9 @@ export default function Dashboard() {
   const [lossCooldown, setLossCooldown] = useState(0);
   const [maxMartingaleSteps, setMaxMartingaleSteps] = useState(3);
   const [circuitBreakerPause, setCircuitBreakerPause] = useState(15);
-  
+  const [dcaPayoutRate, setDcaPayoutRate] = useState<number>(0.92);
+
+    
   // Live State
   const [pnl, setPnl] = useState(0.00);
   const [winRate, setWinRate] = useState(0.0);
@@ -63,6 +65,69 @@ export default function Dashboard() {
   const [tradeHistory, setTradeHistory] = useState<any[]>([]);
   const [historyView, setHistoryView] = useState<'detailed'|'hourly'|'daily'|'monthly'|'yearly'>('detailed');
   const [historyDateContext, setHistoryDateContext] = useState<string>(new Date().toISOString().split('T')[0]);
+
+  // Dynamic DCA / Martingale Recovery Matrix Calculation
+  const dcaTableData = useMemo(() => {
+    const baseStake = Math.max(0.35, Number(initialStake) || 0.35);
+    const mult = Math.max(1.0, Number(multiplier) || 2.25);
+    const totalSteps = Math.min(15, Math.max(1, Number(maxMartingaleSteps) || 1));
+    const payout = Number(dcaPayoutRate) || 0.92;
+    const balance = Number(accountBalance) || 10000;
+    const userStopLoss = Number(stopLoss) || 50;
+
+    const steps = [];
+    let accumulatedLoss = 0;
+    let prevStake = baseStake;
+
+    for (let i = 1; i <= totalSteps; i++) {
+      let stepStake = baseStake;
+      if (i === 1) {
+        stepStake = baseStake;
+      } else {
+        const targetProfitVal = baseStake * payout;
+        const requiredStake = (accumulatedLoss + targetProfitVal) / payout;
+        const standardStake = prevStake * mult;
+        stepStake = Math.round(Math.max(standardStake, requiredStake) * 100) / 100;
+      }
+
+      const totalSpent = Math.round((accumulatedLoss + stepStake) * 100) / 100;
+      const grossWin = Math.round((stepStake * payout) * 100) / 100;
+      const grossPayout = Math.round((stepStake + grossWin) * 100) / 100;
+      const netProfit = Math.round((grossWin - accumulatedLoss) * 100) / 100;
+      const portfolioRiskPct = balance > 0 ? ((totalSpent / balance) * 100) : 0;
+      const isCircuitBreaker = i === totalSteps;
+
+      steps.push({
+        step: i,
+        label: i === 1 ? "Step 1 (Base Entry)" : (isCircuitBreaker ? `Step ${i} (Circuit Breaker Max)` : `Step ${i} (DCA Recovery ${i - 1})`),
+        stake: stepStake,
+        cumulativeSpent: totalSpent,
+        grossWin,
+        grossPayout,
+        netProfit,
+        portfolioRiskPct,
+        isCircuitBreaker
+      });
+
+      prevStake = stepStake;
+      accumulatedLoss = totalSpent;
+    }
+
+    const totalCycleCapital = steps.length > 0 ? steps[steps.length - 1].cumulativeSpent : 0;
+    const isWithinDailyStopLoss = totalCycleCapital <= userStopLoss;
+    const bufferRemaining = Math.round((userStopLoss - totalCycleCapital) * 100) / 100;
+    const maxNetProfit = steps.length > 0 ? steps[steps.length - 1].netProfit : 0;
+    const cycleRiskPercent = balance > 0 ? ((totalCycleCapital / balance) * 100) : 0;
+
+    return {
+      steps,
+      totalCycleCapital,
+      isWithinDailyStopLoss,
+      bufferRemaining,
+      maxNetProfit,
+      cycleRiskPercent
+    };
+  }, [initialStake, multiplier, maxMartingaleSteps, dcaPayoutRate, accountBalance, stopLoss]);
 
   const processHistory = () => {
     let filtered = tradeHistory;
@@ -1268,6 +1333,185 @@ export default function Dashboard() {
                
                <button onClick={handleSaveLogic} className="w-full bg-gradient-to-r from-[#D4AF37] to-[#FFD700] text-[#0B0B0E] font-bold py-3 rounded-xl uppercase tracking-widest text-[10px] hover:shadow-[0_0_20px_rgba(212,175,55,0.4)] transition-all flex items-center justify-center gap-2"><CheckCircle2 className="w-4 h-4"/> LOCK LIMITS & SAVE</button>
              </div>
+
+              {/* DCA RECOVERY MATRIX & EXPOSURE CALCULATOR */}
+              <div className="bg-[rgba(18,18,22,0.85)] border border-[rgba(212,175,55,0.25)] rounded-3xl p-6 backdrop-blur-md shadow-[0_10px_30px_rgba(0,0,0,0.5)]">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 border-b border-[#D4AF37]/20 pb-4">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <Calculator className="w-5 h-5 text-[#FFD700]" />
+                      <h3 className="text-sm md:text-base font-serif text-[#FFD700] uppercase tracking-widest font-bold">
+                        Dynamic DCA & Martingale Exposure Matrix
+                      </h3>
+                    </div>
+                    <p className="text-[10px] text-slate-400 uppercase tracking-widest mt-1">
+                      Real-time mathematical breakdown of capital requirements, broker fees, and net recovery yields
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <span className="text-[10px] text-[#C5A059] uppercase tracking-widest font-bold">Broker Payout:</span>
+                    <div className="flex bg-[#0B0B0E] p-1 rounded-xl border border-[#D4AF37]/30">
+                      {[0.90, 0.92, 0.95].map((rate) => (
+                        <button
+                          key={rate}
+                          type="button"
+                          onClick={() => setDcaPayoutRate(rate)}
+                          className={`px-3 py-1 text-[11px] font-mono rounded-lg transition-all ${
+                            dcaPayoutRate === rate
+                              ? "bg-[#D4AF37] text-black font-bold shadow-[0_0_10px_rgba(212,175,55,0.4)]"
+                              : "text-slate-400 hover:text-white"
+                          }`}
+                        >
+                          {(rate * 100).toFixed(0)}%
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* 4 Stat Pillars */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                  <div className="bg-[#0B0B0E]/80 border border-[#D4AF37]/20 rounded-2xl p-4">
+                    <div className="text-[9px] uppercase tracking-widest text-[#C5A059] font-bold mb-1">Max DCA Cycle Exposure</div>
+                    <div className="text-lg md:text-xl font-mono font-bold text-red-400">${dcaTableData.totalCycleCapital.toFixed(2)}</div>
+                    <div className="text-[9px] text-slate-500 mt-1">Full sequence capital required</div>
+                  </div>
+
+                  <div className="bg-[#0B0B0E]/80 border border-[#D4AF37]/20 rounded-2xl p-4">
+                    <div className="text-[9px] uppercase tracking-widest text-[#C5A059] font-bold mb-1">Net Recovery Profit</div>
+                    <div className="text-lg md:text-xl font-mono font-bold text-emerald-400">+${dcaTableData.maxNetProfit.toFixed(2)}</div>
+                    <div className="text-[9px] text-slate-500 mt-1">Net win on final step recovery</div>
+                  </div>
+
+                  <div className="bg-[#0B0B0E]/80 border border-[#D4AF37]/20 rounded-2xl p-4">
+                    <div className="text-[9px] uppercase tracking-widest text-[#C5A059] font-bold mb-1">Portfolio Risk Ratio</div>
+                    <div className="text-lg md:text-xl font-mono font-bold text-[#FFD700]">{dcaTableData.cycleRiskPercent.toFixed(2)}%</div>
+                    <div className="text-[9px] text-slate-500 mt-1">Of total account balance</div>
+                  </div>
+
+                  <div className="bg-[#0B0B0E]/80 border border-[#D4AF37]/20 rounded-2xl p-4">
+                    <div className="text-[9px] uppercase tracking-widest text-[#C5A059] font-bold mb-1">Stop-Loss Alignment</div>
+                    <div className="flex items-center gap-1.5 mt-0.5">
+                      {dcaTableData.isWithinDailyStopLoss ? (
+                        <>
+                          <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
+                          <span className="text-xs md:text-sm font-bold text-emerald-400 uppercase tracking-wider">Safe Buffer</span>
+                        </>
+                      ) : (
+                        <>
+                          <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" />
+                          <span className="text-xs md:text-sm font-bold text-amber-400 uppercase tracking-wider">Exceeds Limit</span>
+                        </>
+                      )}
+                    </div>
+                    <div className="text-[9px] text-slate-500 mt-1">
+                      {dcaTableData.isWithinDailyStopLoss 
+                        ? `+$${dcaTableData.bufferRemaining.toFixed(2)} daily cushion` 
+                        : `Exceeds daily SL by $${Math.abs(dcaTableData.bufferRemaining).toFixed(2)}`}
+                    </div>
+                  </div>
+                </div>
+
+                {/* DCA Sequence Table */}
+                <div className="overflow-x-auto rounded-2xl border border-[#D4AF37]/20 bg-[#0B0B0E]/60 mb-6">
+                  <table className="w-full text-left border-collapse text-xs font-mono">
+                    <thead>
+                      <tr className="border-b border-[#D4AF37]/20 bg-[#0B0B0E] text-[10px] text-[#C5A059] uppercase tracking-wider font-sans">
+                        <th className="py-3 px-4">DCA Step</th>
+                        <th className="py-3 px-4 text-right">Step Stake ($)</th>
+                        <th className="py-3 px-4 text-right">Total Spent ($)</th>
+                        <th className="py-3 px-4 text-right">Gross Return ($)</th>
+                        <th className="py-3 px-4 text-right">Net Recovery ($)</th>
+                        <th className="py-3 px-4 text-right">Balance Risk (%)</th>
+                        <th className="py-3 px-4 text-center">Protocol Action</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-[#D4AF37]/10">
+                      {dcaTableData.steps.map((row) => (
+                        <tr 
+                          key={row.step} 
+                          className={`hover:bg-[#FFD700]/5 transition-colors ${
+                            row.isCircuitBreaker ? "bg-red-950/20" : ""
+                          }`}
+                        >
+                          <td className="py-3 px-4 flex items-center gap-2">
+                            <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold ${
+                              row.step === 1 
+                                ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/40" 
+                                : row.isCircuitBreaker
+                                ? "bg-red-500/20 text-red-400 border border-red-500/40"
+                                : "bg-[#D4AF37]/20 text-[#FFD700] border border-[#D4AF37]/40"
+                            }`}>
+                              {row.step}
+                            </span>
+                            <span className="font-sans font-medium text-slate-200">
+                              {row.label}
+                            </span>
+                          </td>
+                          <td className="py-3 px-4 text-right font-bold text-white">
+                            ${row.stake.toFixed(2)}
+                          </td>
+                          <td className="py-3 px-4 text-right font-bold text-red-400">
+                            ${row.cumulativeSpent.toFixed(2)}
+                          </td>
+                          <td className="py-3 px-4 text-right text-slate-300">
+                            ${row.grossPayout.toFixed(2)}
+                            <span className="text-[9px] text-slate-500 block font-sans">
+                              (+$${row.grossWin.toFixed(2)} win)
+                            </span>
+                          </td>
+                          <td className="py-3 px-4 text-right font-bold text-emerald-400">
+                            +${row.netProfit.toFixed(2)}
+                          </td>
+                          <td className="py-3 px-4 text-right text-slate-300">
+                            {row.portfolioRiskPct.toFixed(2)}%
+                          </td>
+                          <td className="py-3 px-4 text-center">
+                            {row.step === 1 ? (
+                              <span className="inline-block px-2.5 py-0.5 rounded-full text-[9px] font-sans font-bold uppercase bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
+                                Primary Alpha Entry
+                              </span>
+                            ) : row.isCircuitBreaker ? (
+                              <span className="inline-block px-2.5 py-0.5 rounded-full text-[9px] font-sans font-bold uppercase bg-red-500/15 text-red-400 border border-red-500/30">
+                                Circuit Breaker Cap
+                              </span>
+                            ) : (
+                              <span className="inline-block px-2.5 py-0.5 rounded-full text-[9px] font-sans font-bold uppercase bg-[#D4AF37]/10 text-[#FFD700] border border-[#D4AF37]/30">
+                                Yield Recovery L{row.step - 1}
+                              </span>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Institutional Logic Notes */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs text-slate-400">
+                  <div className="p-4 rounded-xl border border-[#D4AF37]/15 bg-[#0B0B0E]/50">
+                    <div className="flex items-center gap-2 text-[#FFD700] font-bold text-[10px] uppercase tracking-wider mb-1.5">
+                      <Target className="w-3.5 h-3.5" />
+                      Daily Target Profit (${targetProfit.toFixed(2)}) & Stop-Loss (${stopLoss.toFixed(2)})
+                    </div>
+                    <p className="leading-relaxed text-[11px] text-slate-400">
+                      <strong>Daily Max Loss</strong> is your hard 24-hour portfolio stop-loss floor. If total daily losses hit ${stopLoss.toFixed(2)}, all trading immediately suspends to protect balance. <strong>Daily Target Profit</strong> (${targetProfit.toFixed(2)}) locks in daily gains once achieved.
+                    </p>
+                  </div>
+
+                  <div className="p-4 rounded-xl border border-[#D4AF37]/15 bg-[#0B0B0E]/50">
+                    <div className="flex items-center gap-2 text-emerald-400 font-bold text-[10px] uppercase tracking-wider mb-1.5">
+                      <ShieldCheck className="w-3.5 h-3.5" />
+                      Deterministic Recovery Guarantee
+                    </div>
+                    <p className="leading-relaxed text-[11px] text-slate-400">
+                      Every step stake is mathematically calibrated against broker fees ({(dcaPayoutRate * 100).toFixed(0)}% payout). Winning at <em>any</em> recovery step completely recuperates 100% of prior losses in the sequence plus returns clean net profit to your equity.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
 
              <div className="bg-[rgba(18,18,22,0.85)] border border-[rgba(212,175,55,0.25)] rounded-3xl p-6 backdrop-blur-md shadow-[0_10px_30px_rgba(0,0,0,0.5)]">
                <h3 className="text-[#C5A059] text-[10px] uppercase tracking-widest font-bold mb-4">30-Day Compounding Projection</h3>
