@@ -454,6 +454,23 @@ export default function Dashboard() {
     total_trades: bestSetup?.total_trades || 0
   } : bestSetup;
 
+  // Dynamically synchronize active strategy parameters to Current Best Live Edge when AI Auto-Pilot is engaged
+  useEffect(() => {
+    if (aiAutoPilot && currentBestEdge) {
+      const targetStrat = currentBestEdge.strategy === 'apex' ? 'apex_momentum' : currentBestEdge.strategy;
+      if (targetStrat && targetStrat !== strategyCore) {
+        setStrategyCore(targetStrat);
+      }
+      if (currentBestEdge.symbol && currentBestEdge.symbol !== activeSymbol) {
+        setActiveSymbol(currentBestEdge.symbol);
+      }
+      const targetTicks = currentBestEdge.best_tick || currentBestEdge.optimal_ticks;
+      if (targetTicks && targetTicks !== tickDuration) {
+        setTickDuration(targetTicks);
+      }
+    }
+  }, [aiAutoPilot, currentBestEdge]);
+
   // Load account type from localStorage on mount
   useEffect(() => {
     const savedType = localStorage.getItem("ptm_account_type");
@@ -570,7 +587,13 @@ export default function Dashboard() {
             if (data.logic.loss_cooldown !== undefined) setLossCooldown(data.logic.loss_cooldown || 0);
             if (data.logic.max_martingale_steps !== undefined && data.logic.max_martingale_steps !== null) setMaxMartingaleSteps(Number(data.logic.max_martingale_steps));
             if (data.logic.circuit_breaker_pause !== undefined && data.logic.circuit_breaker_pause !== null) setCircuitBreakerPause(Number(data.logic.circuit_breaker_pause));
-            if (data.logic.ai_auto_pilot !== undefined) setAiAutoPilot(Boolean(data.logic.ai_auto_pilot));
+            if (data.logic.ai_auto_pilot !== undefined) {
+              const isAuto = Boolean(data.logic.ai_auto_pilot);
+              setAiAutoPilot(isAuto);
+              if (isAuto) {
+                fetchMatrixData();
+              }
+            }
 
             // Persist authoritative database settings to local cache
             localStorage.setItem("ptm_logic_settings", JSON.stringify(data.logic));
@@ -808,9 +831,9 @@ export default function Dashboard() {
       if (!isRunning) {
         localStorage.setItem("ptm_logic_settings", JSON.stringify({
           active_strategy: strategy,
-          strategy_core: strategyCore,
-          active_symbol: activeSymbol,
-          tick_duration: tickDuration,
+          strategy_core: aiAutoPilot && currentBestEdge?.strategy ? (currentBestEdge.strategy === 'apex' ? 'apex_momentum' : currentBestEdge.strategy) : strategyCore,
+          active_symbol: aiAutoPilot && currentBestEdge?.symbol ? currentBestEdge.symbol : activeSymbol,
+          tick_duration: aiAutoPilot && currentBestEdge?.best_tick ? currentBestEdge.best_tick : tickDuration,
           stake_amount: initialStake,
           take_profit: targetProfit,
           stop_loss: stopLoss,
@@ -1094,7 +1117,7 @@ export default function Dashboard() {
               </div>
               <select 
                 disabled={aiAutoPilot}
-                value={strategyCore} 
+                value={aiAutoPilot && currentBestEdge?.strategy ? (currentBestEdge.strategy === 'apex' ? 'apex_momentum' : currentBestEdge.strategy) : strategyCore} 
                 onChange={e => { setStrategyCore(e.target.value); playTTS("Strategy core selected."); }} 
                 className={`w-full rounded-xl px-4 py-3 outline-none transition-all ${
                    aiAutoPilot 
@@ -1128,7 +1151,7 @@ export default function Dashboard() {
               </div>
               <select 
                 disabled={aiAutoPilot}
-                value={activeSymbol} 
+                value={aiAutoPilot && currentBestEdge?.symbol ? currentBestEdge.symbol : activeSymbol} 
                 onChange={e => { setActiveSymbol(e.target.value); playTTS("Target market selected."); }} 
                 className={`w-full rounded-xl px-4 py-3 outline-none transition-all ${
                    aiAutoPilot 
@@ -1162,7 +1185,7 @@ export default function Dashboard() {
               </div>
               <select 
                 disabled={aiAutoPilot}
-                value={tickDuration} 
+                value={aiAutoPilot && currentBestEdge?.best_tick ? currentBestEdge.best_tick : tickDuration} 
                 onChange={e => { setTickDuration(Number(e.target.value)); playTTS("Trade duration updated."); }} 
                 className={`w-full rounded-xl px-4 py-3 outline-none transition-all ${
                    aiAutoPilot 
