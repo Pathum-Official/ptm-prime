@@ -247,7 +247,8 @@ export default function Dashboard() {
   const [matrixSortBy, setMatrixSortBy] = useState<'ai_score' | 'win_rate' | 'loss_streak' | 'trades' | 'profit'>('ai_score');
   const [isFetchingMatrix, setIsFetchingMatrix] = useState(false);
   const [evaluationTicks, setEvaluationTicks] = useState<number>(0);
-  const [matrixTimeframe, setMatrixTimeframe] = useState<'all' | '5m' | '15m' | '1h'>('all');
+  const [matrixTimeframe, setMatrixTimeframe] = useState<'all' | '5m' | '15m' | '30m' | '1h'>('30m');
+  const [showFullMatrixTable, setShowFullMatrixTable] = useState(false);
   const [isSettingTicks, setIsSettingTicks] = useState(false);
   const [aiAutoPilot, setAiAutoPilot] = useState<boolean>(false);
   const [isConsultingAi, setIsConsultingAi] = useState<boolean>(false);
@@ -499,11 +500,12 @@ export default function Dashboard() {
       return 0;
     });
 
-  const aiAnalysis = matrixData?.ai_analysis || matrixData?.summary?.ai_edge;
+  const aiAnalysis = matrixData?.quant_edge || matrixData?.ai_analysis || matrixData?.summary?.ai_edge;
   const bestSetup = matrixData?.summary?.best_setup || (filteredLeaderboard.length > 0 ? filteredLeaderboard[0] : null);
+  const isStandby = Boolean(aiAnalysis?.is_standby || aiAnalysis?.best_strategy === 'defensive_standby');
   const currentBestEdge = aiAnalysis && aiAnalysis.best_strategy ? {
     strategy: aiAnalysis.best_strategy,
-    strategy_name: aiAnalysis.best_strategy_name || bestSetup?.strategy_name,
+    strategy_name: aiAnalysis.best_strategy_name || (isStandby ? 'Defensive Capital Preservation' : bestSetup?.strategy_name),
     symbol: aiAnalysis.best_symbol,
     symbol_name: aiAnalysis.best_symbol_name || bestSetup?.symbol_name,
     best_tick: aiAnalysis.optimal_ticks || bestSetup?.tick || bestSetup?.best_tick || (evaluationTicks === 0 ? 5 : evaluationTicks),
@@ -511,7 +513,8 @@ export default function Dashboard() {
     ai_score: aiAnalysis.ai_confidence_score || bestSetup?.ai_score || 75.0,
     market_regime: aiAnalysis.market_regime || "Statistical Edge",
     reasoning: aiAnalysis.reasoning || "Evaluated across win rate consistency, verified sample size, minimal loss streaks, and active signal momentum.",
-    ai_model: aiAnalysis.ai_model || "PTM Neural Quantum AI",
+    ai_model: aiAnalysis.ai_model || "PTM Neural Quant Brain",
+    is_standby: isStandby,
     win_rate: bestSetup?.win_rate || 0,
     wins: bestSetup?.wins || 0,
     losses: bestSetup?.losses || 0,
@@ -523,6 +526,9 @@ export default function Dashboard() {
     best_tick_win_rate: bestSetup?.best_tick_win_rate || bestSetup?.win_rate || 0,
     total_trades: bestSetup?.total_trades || 0
   } : bestSetup;
+
+  const topAlphaList = matrixData?.top_alpha || [];
+  const regimeRadarList = matrixData?.regime_radar || [];
 
   // Dynamically synchronize active strategy parameters to Current Best Live Edge when AI Auto-Pilot is engaged
   useEffect(() => {
@@ -1834,12 +1840,16 @@ export default function Dashboard() {
                        <div className="p-2.5 rounded-xl bg-gradient-to-br from-[#D4AF37] to-[#B38728] text-[#0B0B0E] shadow-[0_0_15px_rgba(212,175,55,0.5)] shrink-0">
                           <Crown className="w-5 h-5 drop-shadow-md"/>
                        </div>
-                       <span className="text-[11px] font-sans font-extrabold uppercase tracking-widest px-3 py-1 rounded-full bg-[#FFD700]/20 text-[#FFD700] border border-[#FFD700]/40">
-                         👑 CURRENT BEST LIVE EDGE
+                       <span className={`text-[11px] font-sans font-extrabold uppercase tracking-widest px-3 py-1 rounded-full border ${
+                         currentBestEdge?.is_standby 
+                           ? 'bg-amber-500/20 text-amber-400 border-amber-500/40' 
+                           : 'bg-[#FFD700]/20 text-[#FFD700] border-[#FFD700]/40'
+                       }`}>
+                         {currentBestEdge?.is_standby ? '🛡️ CAPITAL PRESERVATION STANDBY' : '👑 CURRENT BEST LIVE EDGE'}
                        </span>
                        <span className="text-[10px] font-sans font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 flex items-center gap-1.5">
                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
-                         🤖 {currentBestEdge?.ai_model || 'PTM Neural Quantum AI'}
+                         🤖 {currentBestEdge?.ai_model || 'PTM Neural Quant Brain'}
                        </span>
                        {currentBestEdge?.market_regime && (
                          <span className="text-[10px] font-sans font-semibold tracking-wider px-2.5 py-0.5 rounded-full bg-blue-500/15 text-blue-300 border border-blue-500/30">
@@ -1887,27 +1897,31 @@ export default function Dashboard() {
                     <div className="lg:col-span-5 flex flex-col justify-center gap-2">
                        <button
                          onClick={() => currentBestEdge && handleDeployLabStrategy(currentBestEdge.strategy, currentBestEdge.symbol, currentBestEdge.recommended_martingale, currentBestEdge.best_tick)}
-                         disabled={!currentBestEdge || (strategyCore === currentBestEdge.strategy && activeSymbol === currentBestEdge.symbol)}
+                         disabled={!currentBestEdge || currentBestEdge?.is_standby || (strategyCore === currentBestEdge.strategy && activeSymbol === currentBestEdge.symbol)}
                          className={`w-full py-4 px-6 rounded-2xl text-xs sm:text-sm font-extrabold uppercase tracking-widest transition-all duration-300 flex items-center justify-center gap-2.5 shadow-[0_0_25px_rgba(212,175,55,0.4)] ${
-                           (strategyCore === currentBestEdge?.strategy && activeSymbol === currentBestEdge?.symbol)
-                             ? 'bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700 shadow-none'
-                             : 'bg-gradient-to-r from-[#D4AF37] via-[#FFD700] to-[#E5C158] text-[#0B0B0E] hover:scale-[1.02] active:scale-[0.98] cursor-pointer'
+                           currentBestEdge?.is_standby
+                             ? 'bg-amber-950/40 text-amber-300 border border-amber-500/30 cursor-not-allowed shadow-none'
+                             : (strategyCore === currentBestEdge?.strategy && activeSymbol === currentBestEdge?.symbol)
+                               ? 'bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700 shadow-none'
+                               : 'bg-gradient-to-r from-[#D4AF37] via-[#FFD700] to-[#E5C158] text-[#0B0B0E] hover:scale-[1.02] active:scale-[0.98] cursor-pointer'
                          }`}
                        >
                          <Zap className="w-4 h-4 fill-current"/>
-                         {(strategyCore === currentBestEdge?.strategy && activeSymbol === currentBestEdge?.symbol)
-                           ? 'CURRENTLY ACTIVE IN BOT'
-                           : '⚡ AUTO-DEPLOY BEST SETUP NOW'}
+                         {currentBestEdge?.is_standby
+                           ? '🛡️ CAPITAL PROTECTED (SIDELINES HELD)'
+                           : (strategyCore === currentBestEdge?.strategy && activeSymbol === currentBestEdge?.symbol)
+                             ? 'CURRENTLY ACTIVE IN BOT'
+                             : '⚡ AUTO-DEPLOY BEST SETUP NOW'}
                        </button>
 
                        {aiAutoPilot ? (
                           <div className="flex items-center justify-center gap-2 py-1 px-2 text-[10px] font-mono text-emerald-400 bg-emerald-950/40 border border-emerald-500/30 rounded-xl">
                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
-                             <span>AUTONOMOUS MODE: Live Bot is actively executing this edge</span>
+                             <span>{currentBestEdge?.is_standby ? 'AUTONOMOUS STANDBY: Waiting for verified mathematical edge' : 'AUTONOMOUS MODE: Live Bot is actively executing this edge'}</span>
                           </div>
                        ) : (
                           <div className="text-center text-[10px] text-slate-400">
-                             Click to deploy this optimal edge directly into your active bot settings
+                             {currentBestEdge?.is_standby ? 'Markets are choppy. Bot will hold positions safely until high conviction returns.' : 'Click to deploy this optimal edge directly into your active bot settings'}
                           </div>
                        )}
                     </div>
@@ -1959,6 +1973,171 @@ export default function Dashboard() {
                      </div>
                   </div>
               </div>
+
+              
+              {/* MARKET REGIME RADAR: Kaufman Efficiency Ratio Live Microstructure */}
+              {regimeRadarList.length > 0 && (
+                <div className="bg-gradient-to-br from-[rgba(18,18,22,0.95)] to-[rgba(26,26,34,0.85)] border border-[#D4AF37]/35 rounded-3xl p-5 sm:p-6 backdrop-blur-md shadow-[0_10px_35px_rgba(0,0,0,0.5)] flex flex-col gap-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-[#D4AF37]/20 pb-3 gap-2">
+                    <div className="flex items-center gap-2.5">
+                      <div className="p-2 rounded-xl bg-[#D4AF37]/15 text-[#FFD700] border border-[#D4AF37]/30">
+                        <Activity className="w-4 h-4"/>
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-bold text-white tracking-wider flex items-center gap-2">
+                          MARKET REGIME RADAR • KAUFMAN EFFICIENCY RATIO (KER)
+                        </h4>
+                        <p className="text-[10px] text-slate-400">
+                          Live microstructure efficiency analysis. KER &ge; 0.40 indicates directional trend; &le; 0.28 signals dangerous chop/noise traps.
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3 text-[10px] font-mono text-slate-400">
+                      <span className="flex items-center gap-1 text-emerald-400"><span className="w-2 h-2 rounded-full bg-emerald-400 inline-block"/> High Efficiency</span>
+                      <span className="flex items-center gap-1 text-rose-400"><span className="w-2 h-2 rounded-full bg-rose-400 inline-block"/> Noise Trap</span>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    {regimeRadarList.map((item: any, idx: number) => {
+                      const ker = Number(item.ker || 0);
+                      const isHigh = ker >= 0.40;
+                      const isMid = ker >= 0.28 && ker < 0.40;
+                      return (
+                        <div key={idx} className="bg-black/50 border border-slate-800/80 hover:border-[#D4AF37]/40 rounded-2xl p-3 flex flex-col gap-2 transition-all">
+                          <div className="flex items-center justify-between gap-1">
+                            <span className="font-bold text-xs text-white">{item.symbol}</span>
+                            <span className={`px-1.5 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider ${
+                              isHigh ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' :
+                              isMid ? 'bg-blue-500/20 text-blue-300 border border-blue-500/30' :
+                              'bg-rose-500/20 text-rose-400 border border-rose-500/30'
+                            }`}>
+                              {item.regime?.replace('_', ' ')}
+                            </span>
+                          </div>
+                          <div className="text-[9px] text-[#C5A059] truncate">{item.symbol_name}</div>
+                          <div className="flex items-center justify-between text-[10px] font-mono">
+                            <span className="text-slate-400">KER:</span>
+                            <span className={`font-bold ${isHigh ? 'text-emerald-400' : isMid ? 'text-[#FFD700]' : 'text-rose-400'}`}>
+                              {ker.toFixed(3)}
+                            </span>
+                          </div>
+                          <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                            <div
+                              style={{ width: `${Math.min(ker * 100 * 1.5, 100)}%` }}
+                              className={`h-full ${isHigh ? 'bg-emerald-400' : isMid ? 'bg-[#FFD700]' : 'bg-rose-500'}`}
+                            />
+                          </div>
+                          <div className="text-[9px] font-mono flex items-center justify-between text-slate-400 pt-0.5">
+                            <span>Status:</span>
+                            <span className={item.tradeable ? 'text-emerald-400 font-bold' : 'text-slate-500'}>
+                              {item.tradeable ? 'Tradeable' : 'Sidelines'}
+                            </span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* TOP ALPHA SETUPS LEADERBOARD: Top 5 Highest Probability Models */}
+              {topAlphaList.length > 0 && (
+                <div className="bg-gradient-to-br from-[rgba(18,18,22,0.95)] via-[rgba(26,26,34,0.85)] to-[rgba(18,18,22,0.95)] border border-[#D4AF37]/35 rounded-3xl p-5 sm:p-6 backdrop-blur-md shadow-[0_10px_35px_rgba(0,0,0,0.5)] flex flex-col gap-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-[#D4AF37]/20 pb-3 gap-2">
+                    <div className="flex items-center gap-2.5">
+                      <div className="p-2 rounded-xl bg-gradient-to-br from-[#D4AF37] to-[#B38728] text-[#0B0B0E] shadow-[0_0_12px_rgba(212,175,55,0.4)]">
+                        <Crown className="w-4 h-4"/>
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-bold text-white tracking-wider flex items-center gap-2">
+                          TOP ALPHA LEADERBOARD • ROLLING {matrixTimeframe.toUpperCase()}
+                        </h4>
+                        <p className="text-[10px] text-slate-400">
+                          Top quantitative statistical setups ranked by win rate, loss streak resistance, and forward conviction.
+                        </p>
+                      </div>
+                    </div>
+                    <span className="text-[10px] font-mono text-[#D4AF37] bg-black/40 border border-[#D4AF37]/30 px-2.5 py-1 rounded-xl self-start sm:self-auto">
+                      Top 5 Alpha Models
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+                    {topAlphaList.map((item: any, idx: number) => {
+                      const isTop1 = idx === 0;
+                      const isTop2 = idx === 1;
+                      const isTop3 = idx === 2;
+                      const isCurrentActive = (strategyCore === item.strategy && activeSymbol === item.symbol);
+                      return (
+                        <div 
+                          key={idx}
+                          className={`rounded-2xl p-4 flex flex-col justify-between gap-3 backdrop-blur-md transition-all relative overflow-hidden ${
+                            isTop1 ? 'bg-gradient-to-b from-[#D4AF37]/20 via-black/70 to-black/80 border-2 border-[#D4AF37] shadow-[0_0_20px_rgba(212,175,55,0.3)]' :
+                            isTop2 ? 'bg-black/60 border border-slate-400/40' :
+                            isTop3 ? 'bg-black/60 border border-amber-700/40' :
+                            'bg-black/50 border border-slate-800'
+                          }`}
+                        >
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="flex items-center gap-1.5">
+                              <span className={`w-6 h-6 rounded-lg text-xs font-bold flex items-center justify-center ${
+                                isTop1 ? 'bg-gradient-to-br from-[#D4AF37] to-[#FFD700] text-[#0B0B0E] font-extrabold shadow-md' :
+                                isTop2 ? 'bg-slate-300 text-slate-900 font-bold' :
+                                isTop3 ? 'bg-amber-700 text-white font-bold' :
+                                'bg-slate-800 text-slate-400'
+                              }`}>
+                                #{idx + 1}
+                              </span>
+                              <span className="text-[10px] font-mono text-blue-300 font-bold bg-blue-950/40 border border-blue-500/30 px-1.5 py-0.5 rounded">
+                                {item.best_tick || 5}T
+                              </span>
+                            </div>
+                            <div className="text-right">
+                              <span className="text-base font-bold text-green-400 font-mono">{item.win_rate}%</span>
+                              <span className="text-[8px] text-slate-400 block uppercase">Win Rate</span>
+                            </div>
+                          </div>
+
+                          <div>
+                            <div className="font-bold text-xs text-white truncate" title={item.strategy_name}>
+                              {item.strategy_name}
+                            </div>
+                            <div className="text-[10px] text-[#C5A059] font-sans font-semibold mt-0.5 truncate">
+                              {item.symbol_name} ({item.symbol})
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-1.5 bg-black/40 border border-slate-800/80 rounded-xl p-2 text-center text-[9px] font-mono">
+                            <div>
+                              <span className="text-slate-500 block">W / L</span>
+                              <span className="text-green-400 font-bold">{item.wins}</span> / <span className="text-red-400">{item.losses}</span>
+                            </div>
+                            <div>
+                              <span className="text-slate-500 block">Max Streak</span>
+                              <span className={item.max_loss_streak <= 2 ? 'text-green-400 font-bold' : 'text-yellow-400 font-bold'}>
+                                {item.max_loss_streak}L
+                              </span>
+                            </div>
+                          </div>
+
+                          <button
+                            onClick={() => handleDeployLabStrategy(item.strategy, item.symbol, 2, item.best_tick || 5)}
+                            disabled={isCurrentActive}
+                            className={`w-full py-2 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-1 cursor-pointer ${
+                              isCurrentActive ? 'bg-slate-800 text-slate-500 cursor-not-allowed' :
+                              isTop1 ? 'bg-gradient-to-r from-[#D4AF37] to-[#FFD700] text-[#0B0B0E] hover:shadow-[0_0_15px_rgba(212,175,55,0.5)]' :
+                              'bg-white/10 hover:bg-white/20 text-[#FFD700] border border-[#D4AF37]/30'
+                            }`}
+                          >
+                            <Zap className="w-3 h-3"/> {isCurrentActive ? 'ACTIVE' : `DEPLOY (${item.best_tick || 5}T)`}
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
 
               {/* Filter & Search Bar */}
              <div className="bg-[rgba(18,18,22,0.85)] border border-[rgba(212,175,55,0.25)] rounded-2xl p-4 backdrop-blur-md flex flex-wrap items-center justify-between gap-4">
@@ -2039,10 +2218,11 @@ export default function Dashboard() {
                        }} 
                        className="bg-[#0B0B0E] border border-[#D4AF37]/30 text-[#FFD700] rounded-xl px-3 py-1.5 text-xs outline-none cursor-pointer"
                      >
-                        <option value="all">🌐 All-Time Session</option>
-                        <option value="5m">⚡ Last 5 Mins (Fast Scalp)</option>
+                        <option value="30m">🎯 Last 30 Mins (Quant Rolling Window)</option>
                         <option value="15m">📊 Last 15 Mins (Cycle)</option>
+                        <option value="5m">⚡ Last 5 Mins (Fast Scalp)</option>
                         <option value="1h">📈 Last 1 Hour (Macro)</option>
+                        <option value="all">🌐 All-Time Session</option>
                      </select>
                    </div>
 
