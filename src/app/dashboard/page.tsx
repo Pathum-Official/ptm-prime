@@ -3,7 +3,7 @@ import { API_URL, WS_URL } from '../config';
 
 
 import { useState, useEffect, useMemo } from "react";
-import { Activity, ShieldAlert, Target, TrendingUp, Wallet, Power, Settings, LogOut, ChevronDown, ChevronUp, CheckCircle2, History, Banknote, Cpu, Flame, Zap, RefreshCw, Trash2, Sliders, Crown, Sparkles, Bot, Lock, Clock, Calculator, ShieldCheck, AlertTriangle } from "lucide-react";
+import { Activity, ShieldAlert, Target, TrendingUp, Wallet, Power, Settings, LogOut, ChevronDown, ChevronUp, CheckCircle2, History, Banknote, Cpu, Flame, Zap, RefreshCw, Trash2, Sliders, Crown, Sparkles, Bot, Lock, Clock, Calculator, ShieldCheck, AlertTriangle, X } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { Logo } from "@/components/Logo";
@@ -52,6 +52,56 @@ export default function Dashboard() {
 
   // Settings
   const [voiceEnabled, setVoiceEnabled] = useState(true);
+
+  // Luxury Custom Confirmation Dialog State
+  const [confirmDialog, setConfirmDialog] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    confirmText: string;
+    cancelText: string;
+    isDangerous: boolean;
+    icon: 'warning' | 'danger' | 'reset' | 'trash';
+    onConfirm: () => void;
+  }>({
+    isOpen: false,
+    title: "",
+    message: "",
+    confirmText: "Confirm",
+    cancelText: "Cancel",
+    isDangerous: false,
+    icon: 'warning',
+    onConfirm: () => {}
+  });
+
+  const showConfirm = ({
+    title,
+    message,
+    confirmText = "Confirm Action",
+    cancelText = "Cancel",
+    isDangerous = false,
+    icon = 'warning',
+    onConfirm
+  }: {
+    title: string;
+    message: string;
+    confirmText?: string;
+    cancelText?: string;
+    isDangerous?: boolean;
+    icon?: 'warning' | 'danger' | 'reset' | 'trash';
+    onConfirm: () => void;
+  }) => {
+    setConfirmDialog({
+      isOpen: true,
+      title,
+      message,
+      confirmText,
+      cancelText,
+      isDangerous,
+      icon,
+      onConfirm
+    });
+  };
   
   // Security Settings State
   const [curPwd, setCurPwd] = useState("");
@@ -228,46 +278,66 @@ export default function Dashboard() {
     }
   };
 
-  const handleResetLab = async () => {
-    if (!confirm("Are you sure you want to reset all simulation stats back to 0?")) return;
-    try {
-      const res = await fetch(`${API_URL}/api/v1/analytics/reset`, {
-        method: "POST",
-        headers: {
-          "ngrok-skip-browser-warning": "true",
-          "Authorization": `Bearer ${localStorage.getItem("token")}`
-        },
-        credentials: "include"
-      });
-      if (res.ok) {
-        showToast("Matrix Lab reset to zero! Gathering fresh live data...", "success");
-        playTTS("Simulation matrix reset to zero.");
-        fetchMatrixData();
+  const handleResetLab = () => {
+    showConfirm({
+      title: "Reset Simulation Matrix?",
+      message: "Are you sure you want to reset all simulation stats back to 0? This will clear all algorithmic metrics across all 10 Synthetic indices and initiate fresh forward testing from zero.",
+      confirmText: "Reset to Zero",
+      cancelText: "Keep Data",
+      isDangerous: true,
+      icon: "reset",
+      onConfirm: async () => {
+        setConfirmDialog(prev => ({ ...prev, isOpen: false }));
+        try {
+          const res = await fetch(`${API_URL}/api/v1/analytics/reset`, {
+            method: "POST",
+            headers: {
+              "ngrok-skip-browser-warning": "true",
+              "Authorization": `Bearer ${localStorage.getItem("token")}`
+            },
+            credentials: "include"
+          });
+          if (res.ok) {
+            showToast("Matrix Lab reset to zero! Gathering fresh live data...", "success");
+            playTTS("Simulation matrix reset to zero.");
+            fetchMatrixData();
+          }
+        } catch(e) {
+          showToast("Failed to reset Matrix Lab", "error");
+        }
       }
-    } catch(e) {
-      showToast("Failed to reset Matrix Lab", "error");
-    }
+    });
   };
 
-  const handleClearHistory = async () => {
-    if (!confirm("Are you sure you want to delete all past trade history records from the database?")) return;
-    try {
-      const res = await fetch(`${API_URL}/api/v1/analytics/clear-history`, {
-        method: "POST",
-        headers: {
-          "ngrok-skip-browser-warning": "true",
-          "Authorization": `Bearer ${localStorage.getItem("token")}`
-        },
-        credentials: "include"
-      });
-      if (res.ok) {
-        showToast("All old trade history wiped cleanly from database!", "success");
-        playTTS("Trade history cleared.");
-        fetchHistory();
+  const handleClearHistory = () => {
+    showConfirm({
+      title: "Purge Trade Records?",
+      message: "Are you sure you want to delete all past trade history records from the database? This action is permanent and will completely wipe your historical trade ledger.",
+      confirmText: "Wipe History",
+      cancelText: "Cancel",
+      isDangerous: true,
+      icon: "trash",
+      onConfirm: async () => {
+        setConfirmDialog(prev => ({ ...prev, isOpen: false }));
+        try {
+          const res = await fetch(`${API_URL}/api/v1/analytics/clear-history`, {
+            method: "POST",
+            headers: {
+              "ngrok-skip-browser-warning": "true",
+              "Authorization": `Bearer ${localStorage.getItem("token")}`
+            },
+            credentials: "include"
+          });
+          if (res.ok) {
+            showToast("All old trade history wiped cleanly from database!", "success");
+            playTTS("Trade history cleared.");
+            fetchHistory();
+          }
+        } catch(e) {
+          showToast("Failed to clear trade history", "error");
+        }
       }
-    } catch(e) {
-      showToast("Failed to clear trade history", "error");
-    }
+    });
   };
 
   const fetchMatrixData = async (targetTick?: number, targetTimeframe?: string) => {
@@ -2282,7 +2352,114 @@ export default function Dashboard() {
           ))}
         </div>
       </div>
-{/* Custom Toast Notifications */}
+      {/* Luxury Wall Street Custom Confirmation Modal */}
+      <AnimatePresence>
+        {confirmDialog.isOpen && (
+          <div className="fixed inset-0 bg-black/85 backdrop-blur-xl flex items-center justify-center z-[150] p-4 sm:p-6 animate-in fade-in duration-200">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.92, y: 15 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.92, y: 15 }}
+              transition={{ type: "spring", stiffness: 350, damping: 25 }}
+              className={`bg-gradient-to-b from-[#16161c] via-[#0f0f14] to-[#0a0a0d] border p-6 sm:p-8 rounded-3xl w-full max-w-md relative overflow-hidden shadow-[0_25px_60px_rgba(0,0,0,0.9),0_0_50px_rgba(0,0,0,0.8)] ${
+                confirmDialog.isDangerous ? 'border-rose-500/40 shadow-[0_0_50px_rgba(244,63,94,0.18)]' : 'border-[#D4AF37]/40 shadow-[0_0_50px_rgba(212,175,55,0.18)]'
+              }`}
+            >
+              {/* Top Accent Gradient Line */}
+              <div
+                className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${
+                  confirmDialog.isDangerous
+                    ? 'from-rose-600 via-amber-500 to-rose-600'
+                    : 'from-[#D4AF37] via-[#FFD700] to-[#D4AF37]'
+                }`}
+              />
+
+              {/* Ambient Radial Glow */}
+              <div
+                className={`absolute -top-24 -left-24 w-48 h-48 rounded-full blur-3xl pointer-events-none ${
+                  confirmDialog.isDangerous ? 'bg-rose-500/15' : 'bg-[#FFD700]/10'
+                }`}
+              />
+
+              {/* Close Button */}
+              <button
+                type="button"
+                onClick={() => setConfirmDialog(prev => ({ ...prev, isOpen: false }))}
+                className="absolute top-5 right-5 text-slate-500 hover:text-white p-2 rounded-xl hover:bg-white/5 transition-colors cursor-pointer"
+                aria-label="Close dialog"
+              >
+                <X className="w-5 h-5" />
+              </button>
+
+              <div className="flex items-start gap-4 mb-4">
+                <div
+                  className={`w-14 h-14 rounded-2xl flex items-center justify-center border shadow-xl shrink-0 ${
+                    confirmDialog.icon === 'trash' || confirmDialog.icon === 'danger'
+                      ? 'bg-rose-500/15 border-rose-500/40 text-rose-400 shadow-[0_0_20px_rgba(244,63,94,0.3)]'
+                      : confirmDialog.icon === 'reset'
+                      ? 'bg-amber-500/15 border-amber-500/40 text-amber-400 shadow-[0_0_20px_rgba(245,158,11,0.3)]'
+                      : 'bg-[#D4AF37]/15 border-[#D4AF37]/40 text-[#FFD700] shadow-[0_0_20px_rgba(212,175,55,0.3)]'
+                  }`}
+                >
+                  {confirmDialog.icon === 'trash' ? (
+                    <Trash2 className="w-7 h-7" />
+                  ) : confirmDialog.icon === 'reset' ? (
+                    <RefreshCw className="w-7 h-7" />
+                  ) : confirmDialog.isDangerous ? (
+                    <ShieldAlert className="w-7 h-7" />
+                  ) : (
+                    <AlertTriangle className="w-7 h-7" />
+                  )}
+                </div>
+
+                <div className="flex-1 pr-6">
+                  <div
+                    className={`text-[9.5px] uppercase font-extrabold tracking-[0.25em] mb-1 ${
+                      confirmDialog.isDangerous ? 'text-rose-400' : 'text-[#FFD700]'
+                    }`}
+                  >
+                    Confirmation Required
+                  </div>
+                  <h3 className="text-lg sm:text-xl font-serif font-bold text-white tracking-wide">
+                    {confirmDialog.title}
+                  </h3>
+                </div>
+              </div>
+
+              {/* Message Box */}
+              <div className="p-4 rounded-2xl bg-black/50 border border-white/5 text-slate-300 text-xs sm:text-sm leading-relaxed mb-6 font-medium">
+                {confirmDialog.message}
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex flex-col-reverse sm:flex-row gap-3">
+                <button
+                  type="button"
+                  onClick={() => setConfirmDialog(prev => ({ ...prev, isOpen: false }))}
+                  className="flex-1 py-3 px-5 rounded-xl border border-slate-700/80 hover:border-slate-500 bg-slate-900/60 hover:bg-slate-800 text-slate-300 hover:text-white font-bold text-xs uppercase tracking-[0.15em] transition-all cursor-pointer text-center"
+                >
+                  {confirmDialog.cancelText}
+                </button>
+                <button
+                  type="button"
+                  onClick={confirmDialog.onConfirm}
+                  className={`flex-1 py-3 px-5 rounded-xl font-extrabold text-xs uppercase tracking-[0.15em] transition-all cursor-pointer flex items-center justify-center gap-2 ${
+                    confirmDialog.isDangerous
+                      ? 'bg-gradient-to-r from-red-600 via-rose-600 to-rose-700 hover:from-red-500 hover:to-rose-600 text-white shadow-[0_0_25px_rgba(225,29,72,0.4)] hover:shadow-[0_0_35px_rgba(225,29,72,0.6)]'
+                      : 'bg-gradient-to-r from-[#FFD700] to-[#D4AF37] hover:brightness-110 text-black shadow-[0_0_25px_rgba(212,175,55,0.4)] hover:shadow-[0_0_35px_rgba(212,175,55,0.6)]'
+                  }`}
+                >
+                  {confirmDialog.icon === 'trash' && <Trash2 className="w-3.5 h-3.5" />}
+                  {confirmDialog.icon === 'reset' && <RefreshCw className="w-3.5 h-3.5" />}
+                  <span>{confirmDialog.confirmText}</span>
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Custom Toast Notifications */}
       <AnimatePresence>
         {toast.message && (
           <motion.div initial={{ opacity: 0, y: -20, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -20, scale: 0.95 }} transition={{ duration: 0.3 }}
