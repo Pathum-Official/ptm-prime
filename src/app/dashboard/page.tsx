@@ -1130,7 +1130,7 @@ export default function Dashboard() {
                 <option value="rubber_band">Rubber-Band Elastic Scalp (High-Sigma Mean Reversion)</option>
                 <option value="vietnam_smart_scan">Institutional Trend Matrix (Multi-Factor Liquidity Scan)</option>
                 <option value="low_vol_rsi_bb">Low-Vol Tactical Reversal (Statistical Envelope Squeeze)</option>
-                <option value="pure_rsi_14">Academy RSI-14 Oscillator (Wilder 14-Tick Overbought / Oversold)</option>
+                <option value="pure_rsi_14">Harmonic Boundary Oscillator (Multi-Phase Boundary Flow)</option>
                 <option value="macd_kinetic_impulse">Kinetic Momentum Pulse (Multi-Frequency Acceleration)</option>
                 <option value="heikin_ashi_pulse">Synthetic Micro-Wave Scalp (Noise-Filtered Wave Continuation)</option>
                 <option value="breakout_box_scalper">Dynamic Breakout Scalper (Liquidity Compression Expansion)</option>
@@ -1887,7 +1887,7 @@ export default function Dashboard() {
                         <option value="all">All Strategies</option>
                         <option value="trend_momentum_rider">Directional Trend Surge</option>
                         <option value="low_vol_rsi_bb">Low-Vol Tactical Reversal</option>
-                        <option value="pure_rsi_14">Academy RSI-14 Oscillator</option>
+                        <option value="pure_rsi_14">Harmonic Boundary Oscillator</option>
                         <option value="vietnam_smart_scan">Institutional Trend Matrix</option>
                         <option value="apex_momentum">Apex Kinetic Impulse</option>
                         <option value="rubber_band">Rubber-Band Elastic Scalp</option>
