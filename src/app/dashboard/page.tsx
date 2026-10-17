@@ -730,6 +730,8 @@ export default function Dashboard() {
       }
       if (data.type === 'trade_result') {
         setPnl(p => p + data.profit);
+        if (data.current_stake !== undefined) setCurrentStake(data.current_stake);
+        if (data.latest_signal !== undefined) setLatestSignal(data.latest_signal);
         if (data.profit >= 0) triggerFlash('win');
         else triggerFlash('loss');
         
